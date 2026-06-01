@@ -1,0 +1,308 @@
+/* ============================================================
+   Add-to-collection flow  (Sunthar call, Jun 1 2026)
+   Injected overlay on top of the Conductor dev-build snapshot.
+   Styling uses the real maestro design tokens (var(--color-maestro-*))
+   so it matches the dark app exactly.
+   Prefix: .af-  (add-flow)
+   ============================================================ */
+
+:root {
+  --af-radius: 12px;
+  --af-pad: 20px;
+}
+
+/* ---- Injected collection buttons (replace Maestro AI + Add option) ---- */
+.af-add-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; line-height: 1;
+  padding: 6px 11px; border-radius: 9999px;
+  background: var(--color-maestro-accent); color: var(--color-maestro-on-accent);
+  border: 1px solid transparent; cursor: pointer;
+  transition: filter .15s, background .15s;
+  max-width: 280px;
+}
+.af-add-btn:hover { filter: brightness(1.08); }
+.af-add-btn svg { width: 14px; height: 14px; flex: 0 0 auto; }
+.af-add-btn .af-add-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* day / itinerary level "Add collection" */
+.af-add-collection {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; margin: 14px 0 4px;
+  padding: 12px 16px; border-radius: var(--af-radius);
+  border: 1.5px dashed var(--color-maestro-border);
+  background: transparent; color: var(--color-maestro-text-secondary);
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.af-add-collection:hover {
+  border-color: var(--color-maestro-accent);
+  color: var(--color-maestro-text-primary);
+  background: color-mix(in srgb, var(--color-maestro-accent) 6%, transparent);
+}
+.af-add-collection svg { width: 16px; height: 16px; }
+
+/* ---- Scrim + side sheet ---- */
+.af-scrim {
+  position: fixed; inset: 0; z-index: 9998;
+  background: rgba(0,0,0,.55); backdrop-filter: blur(1px);
+  opacity: 0; pointer-events: none; transition: opacity .2s ease;
+}
+.af-scrim.af-open { opacity: 1; pointer-events: auto; }
+
+/* Centered modal — matches the dev build's "Add to itinerary" dialog
+   (data-slot="dialog-content": fixed center, sm:max-w-[480px], rounded-xl,
+   bg-maestro-card, border, shadow-2xl, max-h-[80vh], flex column). */
+.af-sheet {
+  position: fixed; top: 50%; left: 50%; z-index: 9999;
+  width: calc(100% - 2rem); max-width: 480px;
+  max-height: 80vh; display: flex; flex-direction: column;
+  background: var(--color-maestro-card);
+  border: 1px solid var(--color-maestro-border);
+  border-radius: 12px; box-shadow: 0 24px 64px rgba(0,0,0,.5);
+  color: var(--color-maestro-text-primary);
+  transform: translate(-50%, -50%) scale(.97); opacity: 0; pointer-events: none;
+  transition: opacity .15s ease, transform .15s ease;
+}
+.af-sheet.af-open { transform: translate(-50%, -50%) scale(1); opacity: 1; pointer-events: auto; }
+.af-sheet.af-wide { max-width: 560px; }
+.af-sheet.af-xwide { max-width: 960px; }
+/* flat body = no padding, used for 2-pane layouts (Hotel Details, Maestro AI) */
+.af-body.af-flat { padding: 0; display: flex; overflow: hidden; }
+.af-body.af-flat .af-pane { flex: 1 1 auto; min-width: 0; overflow-y: auto; padding: 12px; }
+
+.af-head {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 16px; border-bottom: 1px solid var(--color-maestro-border);
+}
+.af-head-title { font-size: 14px; font-weight: 600; }
+.af-head-sub { font-size: 12px; color: var(--color-maestro-text-tertiary); margin-top: 3px; }
+.af-x {
+  margin-left: auto; flex: 0 0 auto;
+  width: 30px; height: 30px; display: grid; place-items: center;
+  border-radius: 8px; border: 1px solid var(--color-maestro-border);
+  background: transparent; color: var(--color-maestro-text-secondary); cursor: pointer;
+}
+.af-x:hover { background: var(--color-maestro-surface); }
+
+.af-body { flex: 1 1 auto; overflow-y: auto; padding: 14px 16px; }
+.af-foot {
+  border-top: 1px solid var(--color-maestro-border);
+  padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.af-foot:empty { display: none; }
+.af-subnote { font-size: 12px; color: var(--color-maestro-text-tertiary); margin-bottom: 14px; }
+
+/* ---- Step label ---- */
+.af-steplabel {
+  font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--color-maestro-text-tertiary); margin: 2px 0 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.af-steplabel .af-pill {
+  text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 11px;
+  padding: 2px 8px; border-radius: 9999px; border: 1px solid var(--color-maestro-border);
+  color: var(--color-maestro-text-tertiary);
+}
+.af-section + .af-section { margin-top: 22px; }
+
+/* ---- Type picker grid ---- */
+.af-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.af-type {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 8px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--color-maestro-border);
+  background: var(--color-maestro-surface);
+  color: var(--color-maestro-text-secondary);
+  transition: border-color .15s, color .15s, background .15s;
+}
+.af-type:hover { border-color: var(--color-maestro-border-hover); color: var(--color-maestro-text-primary); }
+.af-type.af-selected {
+  border-color: var(--color-maestro-accent); color: var(--color-maestro-text-primary);
+  background: color-mix(in srgb, var(--color-maestro-accent) 10%, transparent);
+  box-shadow: inset 0 0 0 1px var(--color-maestro-accent);
+}
+.af-type svg { width: 22px; height: 22px; }
+.af-type span { font-size: 12px; font-weight: 600; }
+
+/* ---- Choice cards (manual vs AI) ---- */
+.af-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.af-choice {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px; text-align: left;
+  padding: 16px; border-radius: 12px; cursor: pointer;
+  border: 1px solid var(--color-maestro-border);
+  background: transparent; color: var(--color-maestro-text-primary);
+  transition: border-color .15s, background .15s;
+}
+.af-choice:hover { border-color: var(--color-maestro-text-tertiary); background: color-mix(in srgb, var(--color-maestro-surface) 50%, transparent); }
+.af-choice.af-ai { border-color: color-mix(in srgb, var(--color-maestro-accent) 40%, transparent); background: color-mix(in srgb, var(--color-maestro-accent) 3%, transparent); }
+.af-choice.af-ai:hover { border-color: var(--color-maestro-accent); background: color-mix(in srgb, var(--color-maestro-accent) 7%, transparent); }
+.af-choice-ic-sm { width: 20px; height: 20px; color: var(--color-maestro-text-primary); }
+.af-choice.af-ai .af-choice-ic-sm { color: var(--color-maestro-accent); }
+.af-choice-tt { display: block; font-size: 14px; font-weight: 600; }
+.af-choice-ds { display: block; font-size: 12px; color: var(--color-maestro-text-tertiary); line-height: 1.35; }
+
+/* ---- Form fields ---- */
+.af-field { margin-bottom: 14px; }
+.af-row { display: flex; gap: 12px; }
+.af-row > .af-field { flex: 1 1 0; min-width: 0; }
+.af-label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: var(--color-maestro-text-secondary); }
+.af-input, .af-select, .af-textarea {
+  width: 100%; box-sizing: border-box;
+  padding: 9px 11px; font-size: 13px; font-family: inherit;
+  border-radius: 8px; border: 1px solid var(--color-maestro-border);
+  background: var(--color-maestro-surface); color: var(--color-maestro-text-primary);
+  outline: none; transition: border-color .15s, box-shadow .15s;
+}
+.af-input::placeholder, .af-textarea::placeholder { color: var(--color-maestro-text-tertiary); }
+.af-input:focus, .af-select:focus, .af-textarea:focus {
+  border-color: var(--color-maestro-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-maestro-accent) 30%, transparent);
+}
+.af-textarea { resize: vertical; min-height: 72px; }
+
+/* ---- Toggle rows ---- */
+.af-toggle { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--color-maestro-border); }
+.af-toggle:first-of-type { margin-top: 6px; }
+.af-toggle-tx { flex: 1 1 auto; }
+.af-toggle-tt { font-size: 13px; font-weight: 600; }
+.af-toggle-ds { font-size: 11px; color: var(--color-maestro-text-tertiary); margin-top: 1px; }
+.af-switch {
+  flex: 0 0 auto; width: 40px; height: 22px; border-radius: 9999px; cursor: pointer;
+  background: var(--color-maestro-surface-raised); border: 1px solid var(--color-maestro-border);
+  position: relative; transition: background .15s, border-color .15s;
+}
+.af-switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--color-maestro-text-tertiary); transition: transform .15s, background .15s;
+}
+.af-switch.af-on { background: var(--color-maestro-accent); border-color: var(--color-maestro-accent); }
+.af-switch.af-on::after { transform: translateX(18px); background: #fff; }
+
+/* ---- AI inline hint + AI stub ---- */
+.af-aihint {
+  display: flex; align-items: center; gap: 10px; margin-top: 18px;
+  padding: 11px 13px; border-radius: 10px;
+  border: 1px solid var(--color-maestro-border);
+  background: var(--color-maestro-surface);
+  font-size: 12.5px; color: var(--color-maestro-text-secondary);
+}
+.af-aihint svg { width: 16px; height: 16px; color: var(--color-maestro-accent); flex: 0 0 auto; }
+.af-aihint button {
+  margin-left: auto; flex: 0 0 auto; font-size: 12px; font-weight: 600; cursor: pointer;
+  padding: 5px 10px; border-radius: 7px; border: 1px solid var(--color-maestro-border);
+  background: transparent; color: var(--color-maestro-text-primary);
+}
+.af-aihint button:hover { border-color: var(--color-maestro-accent); }
+
+.af-aistub { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 36px 16px; }
+.af-aistub-ic { width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--color-maestro-accent) 14%, transparent); color: var(--color-maestro-accent); }
+.af-aistub-ic svg { width: 28px; height: 28px; }
+.af-aistub h4 { font-size: 15px; font-weight: 700; }
+.af-aistub p { font-size: 12.5px; color: var(--color-maestro-text-tertiary); max-width: 300px; line-height: 1.45; }
+
+/* ---- Buttons (footer) ---- */
+.af-btn {
+  font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer;
+  padding: 9px 16px; border-radius: 9px; border: 1px solid transparent;
+  transition: filter .15s, background .15s, border-color .15s;
+}
+.af-btn-primary { background: var(--color-maestro-accent); color: var(--color-maestro-on-accent); }
+.af-btn-primary:hover { filter: brightness(1.08); }
+.af-btn-primary:disabled { opacity: .45; cursor: not-allowed; filter: none; }
+.af-btn-ghost { background: transparent; color: var(--color-maestro-text-secondary); }
+.af-btn-ghost:hover { color: var(--color-maestro-text-primary); }
+.af-btn-outline { background: transparent; border-color: var(--color-maestro-border); color: var(--color-maestro-text-primary); }
+.af-btn-outline:hover { border-color: var(--color-maestro-border-hover); background: var(--color-maestro-surface); }
+.af-foot .af-spacer { margin-left: auto; }
+
+/* ---- Back link ---- */
+.af-back {
+  display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
+  font-size: 12px; font-weight: 600; color: var(--color-maestro-text-tertiary);
+  background: none; border: none; padding: 0; margin-bottom: 14px;
+}
+.af-back:hover { color: var(--color-maestro-text-primary); }
+.af-back svg { width: 14px; height: 14px; }
+
+/* ============================================================
+   Maestro AI modal (Figma 270-15414 / 17687 / 20009)
+   ============================================================ */
+.af-aihead { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--color-maestro-border); }
+.af-aihead .af-ai-logo { width: 26px; height: 26px; border-radius: 7px; background: var(--color-maestro-accent); color: var(--color-maestro-on-accent); display: grid; place-items: center; flex: 0 0 auto; }
+.af-aihead .af-ai-logo svg { width: 16px; height: 16px; }
+.af-aihead .af-ai-name { font-size: 14px; font-weight: 700; }
+.af-ctx-label { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: var(--color-maestro-text-tertiary); margin-left: 6px; }
+.af-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 9999px; border: 1px solid var(--color-maestro-border); color: var(--color-maestro-text-secondary); background: var(--color-maestro-surface); }
+.af-chip .af-chip-x { cursor: pointer; opacity: .6; }
+.af-chip .af-chip-x:hover { opacity: 1; }
+.af-chip-add { cursor: pointer; }
+.af-chip-add:hover { border-color: var(--color-maestro-accent); color: var(--color-maestro-text-primary); }
+
+.af-ai-2pane { display: flex; width: 100%; min-height: 0; }
+.af-ai-chat { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.af-ai-msgs { flex: 1 1 auto; overflow-y: auto; padding: 20px; }
+.af-ai-empty { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; }
+.af-ai-empty-ic { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: color-mix(in srgb, var(--color-maestro-accent) 12%, transparent); color: var(--color-maestro-accent); margin-bottom: 6px; }
+.af-ai-empty-ic svg { width: 26px; height: 26px; }
+.af-ai-empty h4 { font-size: 15px; font-weight: 700; }
+.af-ai-empty p { font-size: 12.5px; color: var(--color-maestro-text-tertiary); max-width: 330px; line-height: 1.45; }
+.af-ai-suggests { margin-top: 14px; width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 2px; }
+.af-ai-suggest { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-radius: 9px; cursor: pointer; color: var(--color-maestro-text-primary); font-size: 13px; font-weight: 500; background: transparent; border: none; text-align: left; }
+.af-ai-suggest:hover { background: var(--color-maestro-surface); }
+.af-ai-suggest svg { width: 16px; height: 16px; color: var(--color-maestro-text-tertiary); flex: 0 0 auto; }
+.af-ai-suggest .af-ar { margin-left: auto; color: var(--color-maestro-text-tertiary); }
+
+.af-ai-inputbar { border-top: 1px solid var(--color-maestro-border); padding: 12px 16px; display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.af-ai-plus { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--color-maestro-border); color: var(--color-maestro-text-tertiary); display: grid; place-items: center; cursor: pointer; flex: 0 0 auto; }
+.af-ai-input { flex: 1 1 auto; min-width: 0; background: var(--color-maestro-surface); border: 1px solid var(--color-maestro-border); border-radius: 9999px; padding: 9px 14px; color: var(--color-maestro-text-primary); font-size: 13px; font-family: inherit; outline: none; }
+.af-ai-input:focus { border-color: var(--color-maestro-accent); }
+.af-ai-send { width: 32px; height: 32px; border-radius: 50%; background: var(--color-maestro-text-primary); color: var(--color-maestro-bg); display: grid; place-items: center; cursor: pointer; flex: 0 0 auto; border: none; }
+
+/* interview */
+.af-ai-userbubble { margin: 4px 0 16px auto; max-width: 70%; width: fit-content; background: color-mix(in srgb, var(--color-maestro-info) 16%, transparent); color: var(--color-maestro-text-primary); padding: 9px 13px; border-radius: 14px 14px 4px 14px; font-size: 13px; }
+.af-ai-aibubble { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 14px; font-size: 13px; color: var(--color-maestro-text-primary); }
+.af-ai-aibubble .af-ai-dot { width: 18px; height: 18px; border-radius: 50%; background: var(--color-maestro-accent); color: var(--color-maestro-on-accent); display: grid; place-items: center; flex: 0 0 auto; margin-top: 1px; }
+.af-ai-aibubble .af-ai-dot svg { width: 11px; height: 11px; }
+.af-q { border: 1px solid var(--color-maestro-border); border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+.af-q-tt { font-size: 13px; font-weight: 600; }
+.af-q-sub { font-size: 12px; color: var(--color-maestro-text-tertiary); margin: 2px 0 10px; }
+.af-q-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 6px; }
+.af-q-opt { padding: 8px 10px; border-radius: 8px; border: 1px solid var(--color-maestro-border); background: transparent; color: var(--color-maestro-text-secondary); font-size: 12px; font-weight: 500; cursor: pointer; text-align: center; transition: border-color .12s, background .12s, color .12s; }
+.af-q-opt:hover { border-color: var(--color-maestro-text-tertiary); color: var(--color-maestro-text-primary); }
+.af-q-opt.af-on { background: var(--color-maestro-text-primary); color: var(--color-maestro-bg); border-color: var(--color-maestro-text-primary); }
+.af-q-foot { display: flex; align-items: center; justify-content: flex-end; gap: 12px; margin-top: 12px; }
+.af-q-foot span { font-size: 11px; color: var(--color-maestro-text-tertiary); }
+
+/* tasks sidebar */
+.af-ai-tasks { width: 280px; flex: 0 0 auto; border-left: 1px solid var(--color-maestro-border); background: color-mix(in srgb, var(--color-maestro-bg) 40%, transparent); overflow-y: auto; padding: 14px 12px; }
+.af-ai-tasks-h { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: var(--color-maestro-text-tertiary); margin: 0 0 8px; }
+.af-ai-status { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 4px 0; }
+.af-ai-status .af-tick { color: var(--color-maestro-success); }
+.af-ai-status .af-done { margin-left: auto; font-size: 11px; color: var(--color-maestro-success); }
+.af-ai-progress { height: 3px; border-radius: 3px; background: var(--color-maestro-surface-raised); overflow: hidden; margin: 2px 0 10px; }
+.af-ai-progress > i { display: block; height: 100%; width: 55%; background: var(--color-maestro-accent); }
+.af-task { border: 1px solid var(--color-maestro-border); border-radius: 10px; padding: 10px; margin-bottom: 8px; }
+.af-task-top { display: flex; gap: 8px; }
+.af-task-cb { width: 15px; height: 15px; border-radius: 4px; border: 1px solid var(--color-maestro-border); flex: 0 0 auto; margin-top: 1px; }
+.af-task-tt { font-size: 12.5px; font-weight: 600; }
+.af-task-ds { font-size: 11px; color: var(--color-maestro-text-tertiary); margin-top: 2px; line-height: 1.35; }
+.af-task-meta { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.af-task-assignee { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-maestro-text-secondary); border: 1px solid var(--color-maestro-border); border-radius: 6px; padding: 2px 6px; }
+.af-task-av { width: 16px; height: 16px; border-radius: 50%; background: var(--color-maestro-accent); color: var(--color-maestro-on-accent); display: grid; place-items: center; font-size: 8px; font-weight: 700; }
+.af-task-date { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--color-maestro-text-tertiary); border: 1px solid var(--color-maestro-border); border-radius: 6px; padding: 2px 6px; }
+
+/* ---- Toast ---- */
+.af-toast {
+  position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 16px); z-index: 10000;
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 18px; border-radius: 10px;
+  background: var(--color-maestro-text-primary); color: var(--color-maestro-bg);
+  font-size: 13px; font-weight: 600; box-shadow: 0 8px 28px rgba(0,0,0,.35);
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+}
+.af-toast.af-open { opacity: 1; transform: translate(-50%, 0); }
+.af-toast svg { width: 16px; height: 16px; color: var(--color-maestro-success); }
