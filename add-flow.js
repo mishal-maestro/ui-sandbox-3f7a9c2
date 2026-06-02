@@ -42,6 +42,7 @@
     medal: '<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
     compare: '<path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>',
     coins: '<circle cx="8" cy="8" r="6"/><path d="M18.09 10.37A6 6 0 1 1 10.34 18"/><path d="M7 6h1v4"/>',
+    lock: '<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   };
 
   const TYPES = ['hotels', 'flights', 'experiences', 'dining', 'transfers', 'notes'];
@@ -139,6 +140,23 @@
   }
   function firstWord(name) { return (name || '').split(/[,\s]/)[0] || ''; }
 
+  /* ---- dates (date model from the Jun 2 Sunthar/Scott huddle) ---- */
+  const GEN_TYPES = ['hotels', 'flights', 'dining', 'experiences', 'transfers'];
+  function toYMD(s) { const d = new Date(s); if (isNaN(d)) return ''; const m = String(d.getMonth() + 1).padStart(2, '0'); const dd = String(d.getDate()).padStart(2, '0'); return `${d.getFullYear()}-${m}-${dd}`; }
+  function fromYMD(ymd) { if (!ymd) return ''; const p = ymd.split('-').map(Number); const dt = new Date(p[0], p[1] - 1, p[2]); return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+  function dayName(s) { const d = new Date(s); if (isNaN(d)) return ''; return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }); }
+  function rangeLabel(a, b) { if (!a) return ''; const s = fromYMD(a); return (!b || b === a) ? s : `${s} - ${fromYMD(b)}`; }
+  let tripDateEl = null;
+  function computeTrip() {
+    let min = null, max = null;
+    document.querySelectorAll('.af-coll-date').forEach((el) => {
+      const s = el.dataset.start, e = el.dataset.end || el.dataset.start;
+      if (s && (!min || s < min)) min = s;
+      if (e && (!max || e > max)) max = e;
+    });
+    if (tripDateEl && min && max) tripDateEl.textContent = `${fromYMD(min)} - ${fromYMD(max)}`;
+  }
+
   /* ---- DOM scaffold ---- */
   let scrim, sheet, headEl, bodyEl, footEl, toastEl, toastT;
   const st = { mode: null, step: null, type: null, name: '', collection: '', dest: '', onAdded: null };
@@ -180,8 +198,9 @@
   }
 
   function open(opts) {
-    Object.assign(st, { mode: opts.mode, type: opts.type || null, name: '', collection: opts.collection || '', dest: opts.dest || '', day: opts.day || '', onAdded: opts.onAdded || null });
+    Object.assign(st, { mode: opts.mode, type: opts.type || null, name: '', collection: opts.collection || '', dest: opts.dest || '', day: opts.day || '', dayDate: opts.dayDate || '', start: opts.start || '', end: opts.end || '', dateEl: opts.dateEl || null, genTypes: new Set(), onAdded: opts.onAdded || null });
     if (opts.mode === 'newCollection') renderTypeStep();
+    else if (opts.mode === 'editCollection') renderEditCollection();
     else renderChoice();
     requestAnimationFrame(() => { scrim.classList.add('af-open'); sheet.classList.add('af-open'); });
   }
@@ -191,34 +210,89 @@
   function renderTypeStep() {
     st.step = 'type';
     sheet.classList.remove('af-wide');
-    setHead(st.day ? `Add collection to ${st.day}` : 'Add collection to itinerary', 'Name it and pick a type', null);
+    st.genTypes = new Set();
+    const defStart = toYMD(st.dayDate) || '';
+    st.start = defStart; st.end = defStart;
+    setHead(st.day ? `Add Collection to ${st.day}` : 'Add Collection to itinerary',
+      st.dayDate ? `${dayName(st.dayDate)} - generate or add curated options for this day` : '', null);
     bodyEl.innerHTML = `
       <div class="af-section">
-        <div class="af-field">
-          <label class="af-label">Collection name</label>
-          <input class="af-input" id="af-cname" placeholder="e.g. Bangkok Dining">
+        <label class="af-caps">Collection Name</label>
+        <input class="af-input" id="af-cname" maxlength="120" placeholder='e.g. "Paris Hotels"'>
+      </div>
+      <div class="af-section">
+        <label class="af-caps">Include in this generation</label>
+        <div class="af-gentypes">
+          ${GEN_TYPES.map((t) => `<button type="button" class="af-gentype" data-type="${t}" aria-pressed="false">${S(IC[t], 'width="18" height="18"')}<span>${TLABEL[t]}</span></button>`).join('')}
         </div>
       </div>
       <div class="af-section">
-        <div class="af-steplabel">Collection type</div>
-        <div class="af-types">
-          ${TYPES.map((t) => `<button class="af-type" data-type="${t}">${S(IC[t])}<span>${TLABEL[t]}</span></button>`).join('')}
+        <label class="af-caps">Dates</label>
+        <div class="af-row">
+          <div class="af-field"><label class="af-label">Start date</label><input type="date" class="af-input af-date" id="af-cstart" value="${defStart}"></div>
+          <div class="af-field"><label class="af-label">End date</label><input type="date" class="af-input af-date" id="af-cend" value="${defStart}"></div>
         </div>
+        <p class="af-subnote" style="margin:6px 0 0">Components added to this collection inherit these dates.</p>
       </div>`;
-    footEl.innerHTML = `<button class="af-btn af-btn-ghost" data-cancel>Cancel</button><div class="af-spacer"></div><button class="af-btn af-btn-primary" data-create disabled>Create collection</button>`;
+    footEl.innerHTML = `<button class="af-btn af-btn-ghost" data-cancel>Cancel</button><div class="af-spacer"></div><button class="af-btn af-btn-primary" data-create disabled title="Name this collection to continue">Create Collection</button>`;
 
     const nameInput = bodyEl.querySelector('#af-cname');
+    const startInput = bodyEl.querySelector('#af-cstart');
+    const endInput = bodyEl.querySelector('#af-cend');
     const createBtn = footEl.querySelector('[data-create]');
-    const sync = () => { createBtn.disabled = !(st.name.trim() && st.type); };
+    const sync = () => { createBtn.disabled = !nameInput.value.trim(); };
     nameInput.addEventListener('input', () => { st.name = nameInput.value; sync(); });
-    bodyEl.querySelectorAll('.af-type').forEach((tile) => {
+    startInput.addEventListener('change', () => { st.start = startInput.value; if (endInput.value && endInput.value < startInput.value) endInput.value = startInput.value; st.end = endInput.value; });
+    endInput.addEventListener('change', () => { st.end = endInput.value; });
+    bodyEl.querySelectorAll('.af-gentype').forEach((tile) => {
       tile.addEventListener('click', () => {
-        bodyEl.querySelectorAll('.af-type').forEach((x) => x.classList.remove('af-selected'));
-        tile.classList.add('af-selected'); st.type = tile.dataset.type; sync();
+        const on = tile.getAttribute('aria-pressed') === 'true';
+        tile.setAttribute('aria-pressed', on ? 'false' : 'true');
+        tile.classList.toggle('af-on', !on);
+        if (on) st.genTypes.delete(tile.dataset.type); else st.genTypes.add(tile.dataset.type);
       });
     });
     footEl.querySelector('[data-cancel]').addEventListener('click', close);
-    createBtn.addEventListener('click', () => { st.collection = st.name.trim(); renderChoice(); });
+    createBtn.addEventListener('click', () => {
+      st.collection = st.name.trim();
+      st.start = startInput.value; st.end = endInput.value || startInput.value;
+      st.type = [...st.genTypes][0] || 'experiences';
+      renderChoice();
+    });
+  }
+
+  /* ---- Edit Collection (dates moved only at the collection level) ---- */
+  function renderEditCollection() {
+    st.step = 'editCollection';
+    sheet.classList.remove('af-wide', 'af-xwide');
+    bodyEl.classList.remove('af-flat');
+    setHead('Edit Collection', st.collection || '', null);
+    bodyEl.innerHTML = `
+      <div class="af-section">
+        <label class="af-caps">Collection Name</label>
+        <input class="af-input" id="af-ename" maxlength="120" value="${st.collection || ''}">
+      </div>
+      <div class="af-section">
+        <label class="af-caps">Dates</label>
+        <div class="af-row">
+          <div class="af-field"><label class="af-label">Start date</label><input type="date" class="af-input af-date" id="af-estart" value="${st.start || ''}"></div>
+          <div class="af-field"><label class="af-label">End date</label><input type="date" class="af-input af-date" id="af-eend" value="${st.end || st.start || ''}"></div>
+        </div>
+        <p class="af-subnote" style="margin:6px 0 0">Changing dates moves the whole collection, and its components, to the new dates. The trip dates update automatically.</p>
+      </div>`;
+    footEl.innerHTML = `<button class="af-btn af-btn-ghost" data-cancel>Cancel</button><div class="af-spacer"></div><button class="af-btn af-btn-primary" data-save>Save changes</button>`;
+    footEl.querySelector('[data-cancel]').addEventListener('click', close);
+    footEl.querySelector('[data-save]').addEventListener('click', () => {
+      const s = bodyEl.querySelector('#af-estart').value;
+      const e = bodyEl.querySelector('#af-eend').value || s;
+      if (st.dateEl) {
+        st.dateEl.dataset.start = s; st.dateEl.dataset.end = e;
+        st.dateEl.innerHTML = `${S(IC.cal, 'width="11" height="11"')} ${rangeLabel(s, e)}`;
+      }
+      computeTrip();
+      toast(`Moved ${st.collection} to ${rangeLabel(s, e)}`);
+      close();
+    });
   }
 
   /* ---- Step 2: choice (manual vs AI) ---- */
@@ -291,10 +365,11 @@
         <div class="rounded-2xl bg-maestro-card border border-maestro-border shadow-soft-1">
           <div class="flex items-center gap-2 px-3 py-2.5 border-b border-maestro-border/50">
             <div class="p-1.5 bg-maestro-surface rounded-md shrink-0">${S(IC.hotels, 'class="text-maestro-text-tertiary" width="14" height="14"')}</div>
-            <div class="flex-1 min-w-0"><div class="grid grid-cols-2 gap-1">
-              <div><label class="text-[9px] text-maestro-text-tertiary">Check-in</label><input type="date" class="w-full border rounded bg-maestro-card border-maestro-border focus:border-maestro-accent focus:outline-none text-[11px] px-2 py-1"></div>
-              <div><label class="text-[9px] text-maestro-text-tertiary">Check-out</label><input type="date" class="w-full border rounded bg-maestro-card border-maestro-border focus:border-maestro-accent focus:outline-none text-[11px] px-2 py-1"></div>
-            </div></div>
+            <div class="flex-1 min-w-0">
+              <div class="text-[9px] text-maestro-text-tertiary">Stay dates</div>
+              <div class="flex items-center gap-1.5 text-[12px] font-medium text-maestro-text-secondary">${S(IC.lock, 'width="11" height="11" class="text-maestro-text-tertiary"')}<span>${rangeLabel(st.start, st.end) || (st.dayDate ? fromYMD(toYMD(st.dayDate)) : 'May 24, 2024')}</span></div>
+              <div class="text-[9px] text-maestro-text-tertiary mt-0.5 italic">Inherited from collection. Edit on the collection to move.</div>
+            </div>
           </div>
           <div class="px-3 pt-2.5"><label class="text-[10px] text-maestro-text-tertiary">Property Name</label><input class="w-full border rounded bg-maestro-card border-maestro-border focus:border-maestro-accent focus:outline-none px-2 py-1 text-sm font-semibold" placeholder="e.g. Four Seasons Florence"></div>
           <div class="px-3 pt-2"><button type="button" class="w-full aspect-[3/2] rounded-lg overflow-hidden relative border-2 border-dashed border-maestro-border hover:border-maestro-accent cursor-pointer transition-colors"><img alt="" class="w-full h-full object-cover opacity-40" src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=800&auto=format&fit=crop"><div class="absolute inset-0 flex flex-col items-center justify-center gap-1.5">${S(IC.plus, 'class="text-maestro-text-muted" width="24" height="24"')}<span class="text-xs font-medium text-maestro-text-muted">Add images</span></div></button></div>
@@ -478,6 +553,19 @@
       for (let i = 0; i < 6 && card; i++) { if (/rounded-xl/.test(card.className) && /warm-surface|maestro-card/.test(card.className)) break; card = card.parentElement; }
       if (card && !cards.includes(card)) cards.push(card);
 
+      // collection dates = its day's date; components inherit, edited only at collection level
+      const daySec = header.closest('section');
+      const dDate = daySec ? ((daySec.textContent || '').match(/([A-Z][a-z]+ \d{1,2}, \d{4})/) || [])[1] : '';
+      const startYMD = toYMD(dDate) || '';
+      let dateEl = null;
+      if (startYMD && countEl) {
+        dateEl = document.createElement('span');
+        dateEl.className = 'af-coll-date';
+        dateEl.dataset.start = startYMD; dateEl.dataset.end = startYMD;
+        dateEl.innerHTML = `${S(IC.cal, 'width="11" height="11"')} ${rangeLabel(startYMD, startYMD)}`;
+        countEl.insertAdjacentElement('afterend', dateEl);
+      }
+
       const onAdded = () => {
         if (!countEl) return;
         const m = (countEl.textContent || '').match(/(\d+)/);
@@ -485,14 +573,20 @@
         countEl.textContent = `${n} options`;
       };
 
-      // replace the two buttons with one consolidated "Add to {name}"
+      // consolidate the two buttons into "Add to {name}" + an Edit Collection button
       const single = document.createElement('button');
       single.type = 'button';
       single.className = 'af-add-btn';
       single.title = `Add to ${name}`;
       single.innerHTML = `${S(IC.plus)}<span class="af-add-label">Add to ${name}</span>`;
-      single.addEventListener('click', () => open({ mode: 'addOption', type, collection: name, dest: firstWord(name), onAdded }));
-      actionRow.replaceChildren(single);
+      single.addEventListener('click', () => open({ mode: 'addOption', type, collection: name, dest: firstWord(name), start: dateEl ? dateEl.dataset.start : '', end: dateEl ? dateEl.dataset.end : '', onAdded }));
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'af-edit-coll';
+      editBtn.title = `Edit ${name} (move dates)`;
+      editBtn.innerHTML = S(IC.pencilSm, 'width="13" height="13"');
+      editBtn.addEventListener('click', () => open({ mode: 'editCollection', type, collection: name, start: dateEl ? dateEl.dataset.start : '', end: dateEl ? dateEl.dataset.end : '', dateEl }));
+      actionRow.replaceChildren(single, editBtn);
     });
 
     // Replace the hover "+" insert dividers with one clear button per day.
@@ -506,15 +600,20 @@
     const daySections = [...document.querySelectorAll('section')]
       .filter((s) => /^Day\s*0?\d/i.test((s.textContent || '').replace(/\s+/g, '')));
     daySections.forEach((sec) => {
-      const m = (sec.textContent || '').replace(/\s+/g, '').match(/Day0?(\d+)/i);
-      const n = m ? m[1] : '';
+      const t = sec.textContent || '';
+      const n = (t.replace(/\s+/g, '').match(/Day0?(\d+)/i) || [])[1] || '';
+      const dayDate = (t.match(/([A-Z][a-z]+ \d{1,2}, \d{4})/) || [])[1] || '';
       const add = document.createElement('button');
       add.type = 'button';
       add.className = 'af-add-collection';
       add.innerHTML = `${S(IC.plus)} Add collection to Day ${n}`;
-      add.addEventListener('click', () => open({ mode: 'newCollection', day: `Day ${n}` }));
+      add.addEventListener('click', () => open({ mode: 'newCollection', day: `Day ${n}`, dayDate }));
       sec.appendChild(add);
     });
+
+    // trip header date range = min/max of collection dates; recompute now and on edit
+    tripDateEl = [...document.querySelectorAll('span')].find((s) => /^[A-Z][a-z]+ \d{1,2}, \d{4}\s*[—–-]\s*[A-Z][a-z]+ \d{1,2}, \d{4}$/.test((s.textContent || '').trim().replace(/\s+/g, ' ')));
+    computeTrip();
   }
 
   function init() { build(); enhance(); }

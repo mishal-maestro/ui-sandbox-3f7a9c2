@@ -126,6 +126,22 @@
 .af-type svg { width: 22px; height: 22px; }
 .af-type span { font-size: 12px; font-weight: 600; }
 
+/* ---- Caps label, gen-type multi-select, date inputs (Add/Edit Collection) ---- */
+.af-caps { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--color-maestro-text-tertiary); margin-bottom: 6px; }
+.af-gentypes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.af-gentype { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px; border-radius: 9px; border: 1px solid var(--color-maestro-border); background: transparent; color: var(--color-maestro-text-secondary); font-size: 11px; font-weight: 500; cursor: pointer; transition: border-color .12s, background .12s, color .12s; }
+.af-gentype:hover { background: var(--color-maestro-surface); color: var(--color-maestro-text-primary); }
+.af-gentype svg { color: var(--color-maestro-text-tertiary); }
+.af-gentype.af-on { border-color: var(--color-maestro-accent); background: color-mix(in srgb, var(--color-maestro-accent) 10%, transparent); color: var(--color-maestro-text-primary); box-shadow: inset 0 0 0 1px var(--color-maestro-accent); }
+.af-gentype.af-on svg { color: var(--color-maestro-accent); }
+.af-date { color-scheme: dark; }
+
+/* ---- Collection date label + Edit Collection button (itinerary headers) ---- */
+.af-coll-date { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; color: var(--color-maestro-text-tertiary); }
+.af-coll-date svg { width: 11px; height: 11px; }
+.af-edit-coll { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 7px; border: 1px solid var(--color-maestro-border); background: transparent; color: var(--color-maestro-text-tertiary); cursor: pointer; transition: color .12s, border-color .12s, background .12s; }
+.af-edit-coll:hover { color: var(--color-maestro-text-primary); border-color: var(--color-maestro-border-hover); background: var(--color-maestro-surface); }
+
 /* ---- Choice cards (manual vs AI) ---- */
 .af-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .af-choice {
