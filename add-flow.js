@@ -440,44 +440,99 @@
       </div>
     </div>`;
   }
-  function aiTasksHTML() {
-    const task = (tt, ds, who, init) => `
-      <div class="af-task">
-        <div class="af-task-top"><span class="af-task-cb"></span><div><div class="af-task-tt">${tt}</div>${ds ? `<div class="af-task-ds">${ds}</div>` : ''}</div></div>
-        <div class="af-task-meta">
-          <span class="af-task-assignee"><span class="af-task-av">${init}</span>${who} ${S(IC.chevD, 'width="10" height="10"')}</span>
-          <span class="af-task-date">${S(IC.cal, 'width="11" height="11"')} No date</span>
+  function aiSidebarHTML() {
+    const tick = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check shrink-0 text-maestro-success"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>`;
+    const sparkle = `<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles text-maestro-accent"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg>`;
+    const checkBtn = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check"><path d="M20 6 9 17l-5-5"></path></svg>`;
+    const xBtn = `<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>`;
+    const sugTask = (o) => {
+      const prCls = { High: 'af-pr-high', Medium: 'af-pr-med', Low: 'af-pr-low' }[o.priority] || 'af-pr-med';
+      const sig = o.signals ? `<span class="af-tc-sig" title="Signal retriggered ${o.signals} times">${o.signals} signals</span>` : '';
+      return `
+      <li class="af-task-card af-task-card2 ${prCls}" data-task-title="${o.title.replace(/"/g, '&quot;')}" tabindex="0">
+        <div class="af-tc-meta">
+          <span class="af-tc-pr"><span class="af-tc-dot"></span>${o.priority}</span>
+          <span class="af-tc-type">${o.type}</span>
+          ${sig}
+          <span class="af-tc-status">${o.status || 'Open'}</span>
         </div>
-      </div>`;
-    return `<aside class="af-ai-tasks">
-      <p class="af-ai-tasks-h">Maestro AI Tasks</p>
-      <div class="af-ai-status"><span class="af-tick">${S(IC.check, 'width="14" height="14"')}</span> Analyzing destination insights <span class="af-done">Completed</span></div>
-      <div class="af-ai-status">${S(IC.sparkles, 'width="14" height="14"')} Planning experiences &amp; dining</div>
-      <div class="af-ai-progress"><i></i></div>
-      <p class="af-ai-tasks-h" style="margin-top:14px">Tasks</p>
-      ${task("Get John's final approval on dinner choice", '', 'Sunthar', 'SU')}
-      ${task('Confirm anniversary surprise setup', 'Call Eden-Roc to discuss private beach dinner setup for anniversary surprise', 'John Doe', 'JD')}
+        <p class="af-tc-title">${o.title}</p>
+        <p class="af-tc-desc">${o.desc}</p>
+        <div class="af-tc-acts">
+          <button type="button" class="af-tc-act af-tc-approve" title="Approve" aria-label="Approve">${checkBtn}</button>
+          <button type="button" class="af-tc-act af-tc-dismiss" title="Dismiss" aria-label="Dismiss">${xBtn}</button>
+        </div>
+      </li>`;
+    };
+    return `<aside class="w-80 shrink-0 border-l border-maestro-border/70 lg:block">
+      <div class="flex h-full flex-col gap-5 overflow-y-auto p-4">
+        <section>
+          <h3 class="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-maestro-text-tertiary">${sparkle}Maestro AI Tasks</h3>
+          <div class="my-2 max-w-[88%] space-y-1.5 rounded-xl border border-maestro-border/50 bg-maestro-surface/40 p-2.5">
+            <div class="flex items-center gap-2 text-xs animate-slide-up">${tick}<span class="text-maestro-text-secondary">suggest collection options</span><span class="text-maestro-text-tertiary">· 3 options</span></div>
+            <div class="flex items-center gap-2 text-xs animate-slide-up">${tick}<span class="text-maestro-text-secondary">Fact-checking the answer</span><span class="text-maestro-text-tertiary">· important</span></div>
+            <div class="flex items-center gap-2 text-xs animate-slide-up">${tick}<span class="text-maestro-text-secondary">Checking it answered your ask</span><span class="text-maestro-text-tertiary">· important</span></div>
+          </div>
+        </section>
+        <div data-testid="suggested-ops-tasks">
+          <div class="mb-2 flex items-center justify-between gap-2">
+            <h3 class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-maestro-text-tertiary">${sparkle}Suggested tasks</h3>
+            <div class="flex items-center gap-1">
+              <button type="button" class="group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:ring-2 focus-visible:ring-maestro-accent/30 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 text-maestro-text-tertiary hover:text-maestro-text-secondary hover:bg-maestro-surface active:bg-maestro-surface-raised px-2 py-0.5 text-[11px] gap-1">Approve all</button>
+              <button type="button" class="group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:ring-2 focus-visible:ring-maestro-accent/30 focus-visible:ring-offset-1 disabled:pointer-events-none disabled:opacity-50 text-maestro-text-tertiary hover:text-maestro-text-secondary hover:bg-maestro-surface active:bg-maestro-surface-raised px-2 py-0.5 text-[11px] gap-1">Dismiss all</button>
+            </div>
+          </div>
+          <ul class="space-y-1.5 pb-2">
+            ${sugTask({ title: 'Request written booking confirmation from the venue', desc: 'Confirmation prevents itinerary confusion and supports smooth client delivery.', type: 'Booking', priority: 'High', signals: 3 })}
+            ${sugTask({ title: 'Add reservation details to the Jakarta itinerary', desc: 'Client needs the dining name, date, and confirmation in the 1-night Jakarta plan.', type: 'Itinerary', priority: 'Medium' })}
+            ${sugTask({ title: 'Confirm party size and dining time with the client', desc: 'Trip file shows 1 traveller but intent reads as a couple; verify covers and timing.', type: 'Confirm', priority: 'Medium' })}
+            ${sugTask({ title: 'Verify halal suitability and no-pork offering', desc: 'Advisor asked for halal, no-pork venues; confirm directly for each restaurant.', type: 'Verify', priority: 'High' })}
+            ${sugTask({ title: 'Request written confirmation and key booking details', desc: 'Confirmation, address, and reservation name avoid errors on a one-night stop.', type: 'Booking', priority: 'Medium' })}
+            ${sugTask({ title: 'Send the dining details to the client itinerary', desc: 'Client needs the confirmed name, date, time, and notes for a smooth meal.', type: 'Share', priority: 'Low' })}
+            ${sugTask({ title: 'Request a dinner reservation for 2026-06-06', desc: 'One-night Jakarta stay, so securing the exact date is necessary to fit this in.', type: 'Reserve', priority: 'High' })}
+            ${sugTask({ title: 'Confirm halal-friendly and no-pork suitability', desc: 'Advisor asked for halal, no-pork venues; verify against the requirement first.', type: 'Verify', priority: 'High' })}
+          </ul>
+        </div>
+        <section>
+          <h3 class="mb-2 text-xs font-semibold uppercase tracking-wide text-maestro-text-tertiary">Tasks</h3>
+          <ul class="space-y-1.5 pb-2">
+            <li class="flex items-center gap-2 rounded-lg border border-maestro-border/60 bg-maestro-surface/50 px-3 py-2 af-task-row cursor-pointer hover:bg-maestro-surface transition-colors" data-task-title="Reserve Al Nafoura for 2026-06-06"><span class="flex-1 truncate text-xs text-maestro-text-primary">Reserve Al Nafoura for 2026-06-06</span><span class="inline-flex items-center font-medium rounded-full gap-1 bg-maestro-surface text-maestro-text-secondary px-1.5 py-0.5 text-[10px]">Open</span></li>
+            <li class="flex items-center gap-2 rounded-lg border border-maestro-border/60 bg-maestro-surface/50 px-3 py-2 af-task-row cursor-pointer hover:bg-maestro-surface transition-colors" data-task-title="Share dining details and halal note with the client"><span class="flex-1 truncate text-xs text-maestro-text-primary">Share dining details and halal note with the client</span><span class="inline-flex items-center font-medium rounded-full gap-1 bg-maestro-surface text-maestro-text-secondary px-1.5 py-0.5 text-[10px]">Open</span></li>
+            <li class="flex items-center gap-2 rounded-lg border border-maestro-border/60 bg-maestro-surface/50 px-3 py-2 af-task-row cursor-pointer hover:bg-maestro-surface transition-colors" data-task-title="Verify halal suitability and no-pork compliance"><span class="flex-1 truncate text-xs text-maestro-text-primary">Verify halal suitability and no-pork compliance</span><span class="inline-flex items-center font-medium rounded-full gap-1 bg-maestro-surface text-maestro-text-secondary px-1.5 py-0.5 text-[10px]">Open</span></li>
+            <li class="flex items-center gap-2 rounded-lg border border-maestro-border/60 bg-maestro-surface/50 px-3 py-2 af-task-row cursor-pointer hover:bg-maestro-surface transition-colors" data-task-title="Confirm reservation for Turkuaz on 2026-06-06"><span class="flex-1 truncate text-xs text-maestro-text-primary">Confirm reservation for Turkuaz on 2026-06-06</span><span class="inline-flex items-center font-medium rounded-full gap-1 bg-maestro-surface text-maestro-text-secondary px-1.5 py-0.5 text-[10px]">Open</span></li>
+          </ul>
+        </section>
+      </div>
     </aside>`;
   }
-  function aiInterviewHTML(prompt) {
-    const q = (n, tt, sub, opts, sel) => `
-      <div class="af-q">
-        <div class="af-q-tt">${n} · ${tt}</div>
-        <div class="af-q-sub">${sub}</div>
-        <div class="af-q-opts">${opts.map((o, i) => `<button class="af-q-opt ${i === sel ? 'af-on' : ''}" data-opt>${o}</button>`).join('')}</div>
+  function aiOptionsHTML(prompt) {
+    const opt = (name, cuisine, price, rec) => `
+      <div class="af-ai-optcard">
+        <div class="af-ai-optcard-h">
+          <input type="checkbox" class="af-ai-opt-cb" ${rec ? 'checked' : ''}>
+          <div class="af-ai-opt-name">${name}${rec ? ` <span class="af-ai-rec-badge">Recommended</span>` : ''}</div>
+        </div>
+        <div class="af-ai-opt-meta">${cuisine} · ${price}</div>
       </div>`;
     return `
       <div class="af-ai-userbubble">${prompt}</div>
-      <div class="af-ai-aibubble"><span class="af-ai-dot">${S(IC.sparkles)}</span><span>Got it. Before I search, can you confirm a few things?</span></div>
-      ${q('1', 'Budget Cap', 'Max per night for the Harrisons?', ['$1.2k', '$1.6k', '$2k', '$2.5k+'], 1)}
-      ${q('2', 'Star Rating', 'Stick with 5★ palace tier?', ['Same vibe', '5★ only', 'Boutique'], 0)}
-      ${q('3', 'Location', 'Same arrondissement preference?', ['Same', 'Anywhere', 'Suburb OK'], 0)}
-      <div class="af-q-foot"><span>Review and confirm your selections</span><button class="af-btn af-btn-primary" id="af-q-send">Send</button></div>`;
+      <div class="af-ai-aibubble"><span class="af-ai-dot">${S(IC.sparkles)}</span><span>Here are 3 halal-friendly Jakarta dining options that don't serve pork:</span></div>
+      <div class="af-ai-optcards">
+        ${opt('Turkuaz', 'Turkish', '$60-90/person', true)}
+        ${opt('Al Nafoura Lebanese Restaurant', 'Lebanese', '$55-85/person', false)}
+        ${opt('Plataran Menteng', 'Indonesian', '$45-75/person', false)}
+      </div>
+      <button class="af-btn af-btn-primary af-ai-add-sel" id="af-ai-add-sel">Add selected (2)</button>
+      <div class="af-ai-summary">Added 3 halal-friendly Jakarta dining options to the collection.</div>
+      <div class="af-ai-findings">
+        <button class="af-finding-chip" data-finding="factless">${S(IC.shield, 'width="12" height="12"')} 1 coverage check</button>
+        <button class="af-finding-chip" data-finding="factlinked">${S(IC.shield, 'width="12" height="12"')} Client exclusion rule</button>
+      </div>`;
   }
   function renderAI() {
     st.step = 'ai';
-    sheet.classList.remove('af-wide');
-    sheet.classList.add('af-xwide');
+    sheet.classList.remove('af-wide', 'af-xwide');
+    sheet.classList.add('af-xxwide');
     bodyEl.classList.add('af-flat');
     headEl.innerHTML = `
       <button class="af-back" data-back style="margin-right:4px">${S(IC.chevL)}</button>
@@ -499,26 +554,259 @@
           <button class="af-ai-send" id="af-ai-send">${S(IC.arrowUp)}</button>
         </div>
       </div>
-      ${aiTasksHTML()}`;
+      ${aiSidebarHTML()}`;
     footEl.innerHTML = '';
 
     const msgs = bodyEl.querySelector('#af-ai-msgs');
     const input = bodyEl.querySelector('#af-ai-input');
     const go = (prompt) => {
       if (!prompt) return;
-      msgs.innerHTML = aiInterviewHTML(prompt);
+      msgs.innerHTML = aiOptionsHTML(prompt);
       msgs.scrollTop = msgs.scrollHeight;
-      msgs.querySelectorAll('.af-q').forEach((qq) => {
-        qq.querySelectorAll('[data-opt]').forEach((o) => o.addEventListener('click', () => {
-          qq.querySelectorAll('[data-opt]').forEach((x) => x.classList.remove('af-on'));
-          o.classList.add('af-on');
-        }));
+
+      // Wire finding chips to open popovers
+      msgs.querySelectorAll('[data-finding]').forEach((chip) => {
+        chip.addEventListener('click', () => {
+          const type = chip.dataset.finding;
+          openFindingPopover(type, chip);
+        });
       });
-      msgs.querySelector('#af-q-send')?.addEventListener('click', () => toast('Searching for options...'));
     };
     bodyEl.querySelectorAll('.af-ai-suggest').forEach((s) => s.addEventListener('click', () => go(s.dataset.prompt)));
-    bodyEl.querySelector('#af-ai-send').addEventListener('click', () => go(input.value.trim() || 'Add a hotel similar to Le Bristol for the Harrisons'));
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(input.value.trim() || 'Add a hotel similar to Le Bristol for the Harrisons'); });
+    bodyEl.querySelector('#af-ai-send').addEventListener('click', () => go(input.value.trim() || 'i want to add some halal options as well. places that dont serve pork'));
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(input.value.trim() || 'i want to add some halal options as well. places that dont serve pork'); });
+
+    // Wire task cards and task rows to open the drawer
+    bodyEl.querySelectorAll('.af-task-card').forEach((card) => {
+      card.addEventListener('click', () => openTaskDrawer(card.dataset.taskTitle || 'Task'));
+      const ap = card.querySelector('.af-tc-approve');
+      const di = card.querySelector('.af-tc-dismiss');
+      if (ap) ap.addEventListener('click', (e) => { e.stopPropagation(); toast('Task approved'); card.style.display = 'none'; });
+      if (di) di.addEventListener('click', (e) => { e.stopPropagation(); toast('Task dismissed'); card.style.display = 'none'; });
+    });
+    bodyEl.querySelectorAll('.af-task-row').forEach((row) => {
+      row.addEventListener('click', () => {
+        const title = row.dataset.taskTitle || 'Task';
+        openTaskDrawer(title);
+      });
+    });
+  }
+
+  /* ---- Helper finding popover + memory flow ---- */
+  function openFindingPopover(type, anchor) {
+    const existing = document.getElementById('af-finding-popover');
+    if (existing) existing.remove();
+
+    const popover = document.createElement('div');
+    popover.id = 'af-finding-popover';
+    popover.className = 'af-finding-popover';
+
+    if (type === 'factless') {
+      popover.innerHTML = `
+        <div class="af-finding-hd">${S(IC.shield, 'width="14" height="14"')} Coverage Check</div>
+        <div class="af-finding-body">It addresses the halal/no-pork request but adds an unasked romantic anniversary framing and doesn't verify the venues truly don't serve pork.</div>
+        <div class="af-finding-q">Was this flag helpful?</div>
+        <div class="af-finding-acts">
+          <button class="af-btn af-btn-ghost af-btn-sm" data-dismiss>Dismiss</button>
+          <button class="af-btn af-btn-outline af-btn-sm" data-keep>Keep</button>
+        </div>`;
+    } else {
+      popover.innerHTML = `
+        <div class="af-finding-hd">${S(IC.shield, 'width="14" height="14"')} Client Exclusion Rule</div>
+        <div class="af-finding-body">Client rule: no <strong>Maybourne</strong> properties. One of the returned options conflicts with this preference.</div>
+        <div class="af-finding-q">Was this flag helpful?</div>
+        <div class="af-finding-acts">
+          <button class="af-btn af-btn-ghost af-btn-sm" data-dismiss-linked>Dismiss</button>
+          <button class="af-btn af-btn-outline af-btn-sm" data-keep>Keep</button>
+        </div>`;
+    }
+
+    document.body.appendChild(popover);
+
+    // Position near the anchor
+    const rect = anchor.getBoundingClientRect();
+    popover.style.top = `${rect.bottom + 8}px`;
+    popover.style.left = `${Math.max(16, rect.left - 100)}px`;
+
+    requestAnimationFrame(() => popover.classList.add('af-open'));
+
+    // Wire actions
+    popover.querySelector('[data-keep]')?.addEventListener('click', () => {
+      popover.remove();
+      toast('Flag kept for review');
+    });
+
+    popover.querySelector('[data-dismiss]')?.addEventListener('click', () => {
+      popover.remove();
+      toast('Thanks, noted');
+    });
+
+    popover.querySelector('[data-dismiss-linked]')?.addEventListener('click', () => {
+      popover.remove();
+      openMemoryModal();
+    });
+
+    // Click outside to close
+    const closeOut = (e) => {
+      if (!popover.contains(e.target) && !anchor.contains(e.target)) {
+        popover.remove();
+        document.removeEventListener('click', closeOut);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeOut), 50);
+  }
+
+  function openMemoryModal() {
+    const existing = document.getElementById('af-memory-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'af-memory-modal';
+    modal.className = 'af-memory-modal';
+    modal.innerHTML = `
+      <div class="af-memory-card">
+        <div class="af-memory-hd">
+          <div class="af-memory-title">Update this rule?</div>
+          <button class="af-memory-x">${S(IC.x, 'width="14" height="14"')}</button>
+        </div>
+        <div class="af-memory-body">
+          <div class="af-memory-rule">Client preference: no <strong>Maybourne</strong> properties</div>
+          <div class="af-memory-q">What should we do with this rule going forward?</div>
+          <div class="af-memory-opts">
+            <button class="af-memory-opt" data-action="remove">
+              <div class="af-memory-opt-tt">Stop applying it</div>
+              <div class="af-memory-opt-ds">Remove this rule entirely. It won't be checked on future recommendations.</div>
+            </button>
+            <button class="af-memory-opt" data-action="stale">
+              <div class="af-memory-opt-tt">Pause for review</div>
+              <div class="af-memory-opt-ds">Mark this rule as stale. It stays on file but won't be enforced until reviewed.</div>
+            </button>
+            <button class="af-memory-opt" data-action="keep">
+              <div class="af-memory-opt-tt">Just this once</div>
+              <div class="af-memory-opt-ds">Keep the rule active, but allow this exception. The rule will apply to future searches.</div>
+            </button>
+          </div>
+        </div>
+        <div class="af-memory-foot">
+          <button class="af-btn af-btn-ghost" data-cancel>Cancel</button>
+          <button class="af-btn af-btn-primary" data-confirm disabled>Confirm selection</button>
+        </div>
+      </div>`;
+
+    document.body.appendChild(modal);
+    requestAnimationFrame(() => modal.classList.add('af-open'));
+
+    const confirmBtn = modal.querySelector('[data-confirm]');
+    let selected = null;
+
+    modal.querySelectorAll('.af-memory-opt').forEach((opt) => {
+      opt.addEventListener('click', () => {
+        modal.querySelectorAll('.af-memory-opt').forEach((o) => o.classList.remove('af-selected'));
+        opt.classList.add('af-selected');
+        selected = opt.dataset.action;
+        confirmBtn.disabled = false;
+      });
+    });
+
+    modal.querySelector('[data-cancel]').addEventListener('click', () => modal.remove());
+    modal.querySelector('.af-memory-x').addEventListener('click', () => modal.remove());
+    confirmBtn.addEventListener('click', () => {
+      modal.remove();
+      const label = { remove: 'Rule removed', stale: 'Rule paused for review', keep: 'Exception noted, rule stays active' }[selected];
+      toast(label);
+    });
+  }
+
+  /* ---- Task detail drawer ---- */
+  function openTaskDrawer(title) {
+    const existing = document.getElementById('af-task-drawer');
+    if (existing) existing.remove();
+
+    const drawer = document.createElement('div');
+    drawer.id = 'af-task-drawer';
+    drawer.className = 'af-task-drawer';
+    drawer.innerHTML = `
+      <div class="af-drawer-content">
+        <div class="flex items-center justify-between gap-3 px-5 py-3 border-b border-maestro-border">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide bg-maestro-warning-light text-maestro-warning border border-maestro-warning/30">Assist</span>
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-maestro-border/60 bg-maestro-surface px-2 py-0.5 text-[11px] text-maestro-text-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-clock text-maestro-text-tertiary"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
+            Scheduled query
+          </span>
+          <span class="text-[12px] text-maestro-text-tertiary truncate">trip prep · day-of-departure</span>
+        </div>
+        <button type="button" class="af-drawer-close shrink-0 rounded p-1 text-maestro-text-tertiary hover:text-maestro-text-primary hover:bg-maestro-surface">
+          ${S(IC.x, 'width="16" height="16"')}
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto px-5 pt-2 pb-5 space-y-4">
+        <div class="space-y-2">
+          <div class="flex items-start gap-2">
+            <h2 class="text-lg font-semibold text-maestro-text-primary leading-tight flex-1 min-w-0">${title}</h2>
+            <span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-maestro-warning/10 text-maestro-warning">3 signals merged</span>
+          </div>
+          <div class="flex items-center gap-2 text-[12px]">
+            <span class="text-maestro-text-tertiary">·</span>
+            <span class="shrink-0"><span class="text-maestro-text-tertiary">Priority: </span><span class="text-maestro-text-primary">High</span></span>
+            <span class="text-maestro-text-tertiary">·</span>
+            <span class="text-maestro-text-tertiary">Status: </span><span class="text-maestro-text-primary">Open</span>
+          </div>
+        </div>
+        <div class="rounded-lg border border-maestro-warning/50 bg-maestro-warning/[0.04] p-4 space-y-3">
+          <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-lightbulb text-maestro-warning"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+            <span class="text-[11px] font-semibold text-maestro-text-primary uppercase tracking-wide">Review</span>
+            <span class="text-[10px] text-maestro-text-tertiary uppercase tracking-wide">AI flagged this — accept or drop</span>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="af-drawer-approve inline-flex items-center gap-1 bg-maestro-text-primary text-maestro-on-primary hover:opacity-90 px-2.5 py-1 rounded-md text-xs font-medium">
+              ${S(IC.check, 'width="12" height="12"')}Approve
+            </button>
+            <button type="button" class="af-drawer-dismiss inline-flex items-center gap-1 text-maestro-danger hover:bg-maestro-surface px-2.5 py-1 rounded-md text-xs font-medium">Dismiss</button>
+          </div>
+          <p class="text-[11px] text-maestro-text-tertiary leading-relaxed">Approving keeps the task in the active list. Dismissing removes it from default queues but the audit trail is preserved.</p>
+        </div>
+        <div class="rounded-lg border border-maestro-border/60 bg-maestro-surface/30 p-4 space-y-2">
+          <div class="flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map text-maestro-accent"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"></path><path d="M15 5.764v15"></path><path d="M9 3.236v15"></path></svg>
+            <span class="text-[10px] font-semibold text-maestro-text-tertiary uppercase tracking-wide">Trip-prep step</span>
+          </div>
+          <p class="text-[13px] text-maestro-text-primary font-mono">day-of-departure</p>
+        </div>
+        <div class="rounded-lg border border-maestro-border/60 bg-maestro-surface/30 p-4 space-y-3">
+          <div class="flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info text-maestro-accent"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+            <span class="text-[10px] font-semibold text-maestro-text-tertiary uppercase tracking-wide">Rationale</span>
+          </div>
+          <p class="text-[13px] text-maestro-text-primary leading-relaxed">Trip departs within 4 hours — confirm boarding passes, transfers, and day-of contact reach.</p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-maestro-text-primary mb-2">Notes</p>
+          <textarea class="w-full border rounded-lg px-3 py-2.5 bg-maestro-card border-maestro-border focus:border-maestro-accent focus:outline-none text-[13px] resize-none min-h-[72px]" placeholder="Add notes..." rows="3"></textarea>
+        </div>
+      </div>
+    </div>`;
+
+    document.body.appendChild(drawer);
+    requestAnimationFrame(() => drawer.classList.add('af-open'));
+
+    drawer.querySelector('.af-drawer-close').addEventListener('click', () => {
+      drawer.classList.remove('af-open');
+      setTimeout(() => drawer.remove(), 200);
+    });
+
+    drawer.querySelector('.af-drawer-approve').addEventListener('click', () => {
+      toast('Task approved');
+      drawer.classList.remove('af-open');
+      setTimeout(() => drawer.remove(), 200);
+    });
+
+    drawer.querySelector('.af-drawer-dismiss').addEventListener('click', () => {
+      toast('Task dismissed');
+      drawer.classList.remove('af-open');
+      setTimeout(() => drawer.remove(), 200);
+    });
   }
 
   function commitAdd(title) {
