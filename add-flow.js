@@ -48,6 +48,75 @@
   const TYPES = ['hotels', 'flights', 'experiences', 'dining', 'transfers', 'notes'];
   const TLABEL = { hotels: 'Hotels', flights: 'Flights', experiences: 'Experiences', dining: 'Dining', transfers: 'Transfers', notes: 'Notes' };
 
+  /* ---- Members (for assignee dropdown) ---- */
+  const MEMBERS = [
+    { id: 'ai', name: 'Maestro AI', initials: 'AI', color: 'var(--color-maestro-accent)' },
+    { id: 'sd', name: 'Scott DuBois', initials: 'SD', color: '#6366f1' },
+    { id: 'su', name: 'Sunthar P.', initials: 'SU', color: '#8b5cf6' },
+    { id: 'ac', name: 'Andy Cantu', initials: 'AC', color: '#14b8a6' },
+    { id: 'kr', name: 'Kenny R.', initials: 'KR', color: '#f59e0b' },
+  ];
+  const UNASSIGNED = { id: 'unassigned', name: 'Unassigned', initials: '?', color: 'transparent' };
+
+  function memberAvatar(m, size = '16') {
+    const bg = m.id === 'unassigned' ? 'transparent' : m.color;
+    const border = m.id === 'unassigned' ? `border: 1.5px dashed var(--color-maestro-border);` : '';
+    const txtColor = m.id === 'unassigned' ? 'var(--color-maestro-text-tertiary)' : '#fff';
+    return `<span class="af-avatar" style="display:inline-flex;align-items:center;justify-content:center;width:${size}px;height:${size}px;border-radius:50%;background:${bg};${border}font-size:${Math.floor(size * 0.45)}px;font-weight:600;color:${txtColor};flex-shrink:0;">${m.initials}</span>`;
+  }
+
+  let openAssigneeMenu = null;
+  function closeAssigneeMenu() {
+    if (openAssigneeMenu) {
+      openAssigneeMenu.remove();
+      openAssigneeMenu = null;
+    }
+  }
+
+  function showAssigneeMenu(anchor, currentId, onSelect) {
+    closeAssigneeMenu();
+    const menu = document.createElement('div');
+    menu.className = 'af-assignee-menu';
+    const all = [UNASSIGNED, ...MEMBERS];
+    menu.innerHTML = all.map((m) => {
+      const sel = m.id === currentId ? 'af-selected' : '';
+      return `<button type="button" class="af-assignee-item ${sel}" data-id="${m.id}">${memberAvatar(m, 20)}<span>${m.name}</span></button>`;
+    }).join('');
+    document.body.appendChild(menu);
+    openAssigneeMenu = menu;
+
+    const rect = anchor.getBoundingClientRect();
+    menu.style.top = `${rect.bottom + 6}px`;
+    menu.style.left = `${rect.left}px`;
+
+    requestAnimationFrame(() => menu.classList.add('af-open'));
+
+    menu.querySelectorAll('.af-assignee-item').forEach((item) => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = item.dataset.id;
+        onSelect(id);
+        closeAssigneeMenu();
+      });
+    });
+
+    const closeOut = (e) => {
+      if (!menu.contains(e.target) && !anchor.contains(e.target)) {
+        closeAssigneeMenu();
+        document.removeEventListener('click', closeOut);
+      }
+    };
+    setTimeout(() => document.addEventListener('click', closeOut), 50);
+  }
+
+  function assigneeChip(assigneeId, onClick) {
+    const m = MEMBERS.find((x) => x.id === assigneeId) || UNASSIGNED;
+    if (m.id === 'unassigned') {
+      return `<button type="button" class="af-assignee-chip af-unassigned">${memberAvatar(m, 16)}<span>Assign</span>${S(IC.chevD, 'width="11" height="11"')}</button>`;
+    }
+    return `<button type="button" class="af-assignee-chip">${memberAvatar(m, 16)}<span>${m.name}</span>${S(IC.chevD, 'width="11" height="11"')}</button>`;
+  }
+
   /* ---- per-type form schema (Figma 08: fields vary by type) ---- */
   function fieldsFor(type, ctx) {
     const dest = ctx.dest || '';
@@ -448,19 +517,23 @@
     const sugTask = (o) => {
       const prCls = { High: 'af-pr-high', Medium: 'af-pr-med', Low: 'af-pr-low' }[o.priority] || 'af-pr-med';
       const sig = o.signals ? `<span class="af-tc-sig" title="Signal retriggered ${o.signals} times">${o.signals} signals</span>` : '';
+      const assigneeId = o.assignee || 'unassigned';
       return `
-      <li class="af-task-card af-task-card2 ${prCls}" data-task-title="${o.title.replace(/"/g, '&quot;')}" tabindex="0">
+      <li class="af-task-card af-task-card2 ${prCls}" data-task-title="${(o.title||'').replace(/"/g, '&quot;')}" data-task-desc="${(o.desc||'').replace(/"/g, '&quot;')}" data-task-priority="${o.priority}" data-task-signals="${o.signals || ''}" data-task-assignee="${assigneeId}" tabindex="0">
         <div class="af-tc-meta">
           <span class="af-tc-pr"><span class="af-tc-dot"></span>${o.priority}</span>
-          <span class="af-tc-type">${o.type}</span>
+          <span class="af-tc-type" title="Orchestration tier">Assist</span>
           ${sig}
           <span class="af-tc-status">${o.status || 'Open'}</span>
         </div>
         <p class="af-tc-title">${o.title}</p>
         <p class="af-tc-desc">${o.desc}</p>
-        <div class="af-tc-acts">
-          <button type="button" class="af-tc-act af-tc-approve" title="Approve" aria-label="Approve">${checkBtn}</button>
-          <button type="button" class="af-tc-act af-tc-dismiss" title="Dismiss" aria-label="Dismiss">${xBtn}</button>
+        <div class="af-tc-footer">
+          ${assigneeChip(assigneeId)}
+          <div class="af-tc-acts">
+            <button type="button" class="af-tc-act af-tc-approve" aria-label="Approve">${checkBtn}</button>
+            <button type="button" class="af-tc-act af-tc-dismiss" aria-label="Dismiss">${xBtn}</button>
+          </div>
         </div>
       </li>`;
     };
@@ -483,14 +556,14 @@
             </div>
           </div>
           <ul class="space-y-1.5 pb-2">
-            ${sugTask({ title: 'Request written booking confirmation from the venue', desc: 'Confirmation prevents itinerary confusion and supports smooth client delivery.', type: 'Booking', priority: 'High', signals: 3 })}
-            ${sugTask({ title: 'Add reservation details to the Jakarta itinerary', desc: 'Client needs the dining name, date, and confirmation in the 1-night Jakarta plan.', type: 'Itinerary', priority: 'Medium' })}
-            ${sugTask({ title: 'Confirm party size and dining time with the client', desc: 'Trip file shows 1 traveller but intent reads as a couple; verify covers and timing.', type: 'Confirm', priority: 'Medium' })}
-            ${sugTask({ title: 'Verify halal suitability and no-pork offering', desc: 'Advisor asked for halal, no-pork venues; confirm directly for each restaurant.', type: 'Verify', priority: 'High' })}
-            ${sugTask({ title: 'Request written confirmation and key booking details', desc: 'Confirmation, address, and reservation name avoid errors on a one-night stop.', type: 'Booking', priority: 'Medium' })}
-            ${sugTask({ title: 'Send the dining details to the client itinerary', desc: 'Client needs the confirmed name, date, time, and notes for a smooth meal.', type: 'Share', priority: 'Low' })}
-            ${sugTask({ title: 'Request a dinner reservation for 2026-06-06', desc: 'One-night Jakarta stay, so securing the exact date is necessary to fit this in.', type: 'Reserve', priority: 'High' })}
-            ${sugTask({ title: 'Confirm halal-friendly and no-pork suitability', desc: 'Advisor asked for halal, no-pork venues; verify against the requirement first.', type: 'Verify', priority: 'High' })}
+            ${sugTask({ title: 'Request written booking confirmation from the venue', desc: 'Confirmation prevents itinerary confusion and supports smooth client delivery.', type: 'Booking', priority: 'High', signals: 3, assignee: 'sd' })}
+            ${sugTask({ title: 'Add reservation details to the Jakarta itinerary', desc: 'Client needs the dining name, date, and confirmation in the 1-night Jakarta plan.', type: 'Itinerary', priority: 'Medium', assignee: 'unassigned' })}
+            ${sugTask({ title: 'Confirm party size and dining time with the client', desc: 'Trip file shows 1 traveller but intent reads as a couple; verify covers and timing.', type: 'Confirm', priority: 'Medium', assignee: 'ai' })}
+            ${sugTask({ title: 'Verify halal suitability and no-pork offering', desc: 'Advisor asked for halal, no-pork venues; confirm directly for each restaurant.', type: 'Verify', priority: 'High', assignee: 'unassigned' })}
+            ${sugTask({ title: 'Request written confirmation and key booking details', desc: 'Confirmation, address, and reservation name avoid errors on a one-night stop.', type: 'Booking', priority: 'Medium', assignee: 'su' })}
+            ${sugTask({ title: 'Send the dining details to the client itinerary', desc: 'Client needs the confirmed name, date, time, and notes for a smooth meal.', type: 'Share', priority: 'Low', assignee: 'unassigned' })}
+            ${sugTask({ title: 'Request a dinner reservation for 2026-06-06', desc: 'One-night Jakarta stay, so securing the exact date is necessary to fit this in.', type: 'Reserve', priority: 'High', assignee: 'ac' })}
+            ${sugTask({ title: 'Confirm halal-friendly and no-pork suitability', desc: 'Advisor asked for halal, no-pork venues; verify against the requirement first.', type: 'Verify', priority: 'High', assignee: 'kr' })}
           </ul>
         </div>
         <section>
@@ -578,7 +651,28 @@
 
     // Wire task cards and task rows to open the drawer
     bodyEl.querySelectorAll('.af-task-card').forEach((card) => {
-      card.addEventListener('click', () => openTaskDrawer(card.dataset.taskTitle || 'Task'));
+      card.addEventListener('click', (e) => {
+        // Don't open drawer if clicking assignee chip or action buttons
+        if (e.target.closest('.af-assignee-chip') || e.target.closest('.af-tc-acts')) return;
+        openTaskDrawer(card.dataset.taskTitle || 'Task', card.dataset.taskDesc, card.dataset.taskPriority, card.dataset.taskSignals, card.dataset.taskAssignee);
+      });
+      const assigneeChipEl = card.querySelector('.af-assignee-chip');
+      if (assigneeChipEl) {
+        assigneeChipEl.addEventListener('click', (e) => {
+          e.stopPropagation();
+          showAssigneeMenu(assigneeChipEl, card.dataset.taskAssignee || 'unassigned', (newId) => {
+            card.dataset.taskAssignee = newId;
+            const m = MEMBERS.find((x) => x.id === newId) || UNASSIGNED;
+            if (m.id === 'unassigned') {
+              assigneeChipEl.innerHTML = `${memberAvatar(m, 16)}<span>Assign</span>${S(IC.chevD, 'width="11" height="11"')}`;
+              assigneeChipEl.classList.add('af-unassigned');
+            } else {
+              assigneeChipEl.innerHTML = `${memberAvatar(m, 16)}<span>${m.name}</span>${S(IC.chevD, 'width="11" height="11"')}`;
+              assigneeChipEl.classList.remove('af-unassigned');
+            }
+          });
+        });
+      }
       const ap = card.querySelector('.af-tc-approve');
       const di = card.querySelector('.af-tc-dismiss');
       if (ap) ap.addEventListener('click', (e) => { e.stopPropagation(); toast('Task approved'); card.style.display = 'none'; });
@@ -718,13 +812,18 @@
   }
 
   /* ---- Task detail drawer ---- */
-  function openTaskDrawer(title) {
+  function openTaskDrawer(title, desc, priority, signals, assigneeId) {
+    desc = desc || 'No additional detail provided.';
+    priority = priority || 'High';
+    signals = signals ? parseInt(signals, 10) : 0;
+    assigneeId = assigneeId || 'unassigned';
     const existing = document.getElementById('af-task-drawer');
     if (existing) existing.remove();
 
     const drawer = document.createElement('div');
     drawer.id = 'af-task-drawer';
     drawer.className = 'af-task-drawer';
+    const m = MEMBERS.find((x) => x.id === assigneeId) || UNASSIGNED;
     drawer.innerHTML = `
       <div class="af-drawer-content">
         <div class="flex items-center justify-between gap-3 px-5 py-3 border-b border-maestro-border">
@@ -744,13 +843,15 @@
         <div class="space-y-2">
           <div class="flex items-start gap-2">
             <h2 class="text-lg font-semibold text-maestro-text-primary leading-tight flex-1 min-w-0">${title}</h2>
-            <span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-maestro-warning/10 text-maestro-warning">3 signals merged</span>
+            ${signals ? `<span class="shrink-0 inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-maestro-warning/10 text-maestro-warning">${signals} signals merged</span>` : ''}
           </div>
-          <div class="flex items-center gap-2 text-[12px]">
+          <div class="flex items-center gap-2 text-[12px] flex-wrap">
             <span class="text-maestro-text-tertiary">·</span>
-            <span class="shrink-0"><span class="text-maestro-text-tertiary">Priority: </span><span class="text-maestro-text-primary">High</span></span>
+            <span class="shrink-0"><span class="text-maestro-text-tertiary">Priority: </span><span class="text-maestro-text-primary">${priority}</span></span>
             <span class="text-maestro-text-tertiary">·</span>
             <span class="text-maestro-text-tertiary">Status: </span><span class="text-maestro-text-primary">Open</span>
+            <span class="text-maestro-text-tertiary">·</span>
+            <span class="shrink-0 inline-flex items-center gap-1.5"><span class="text-maestro-text-tertiary">Assignee: </span>${assigneeChip(assigneeId)}</span>
           </div>
         </div>
         <div class="rounded-lg border border-maestro-warning/50 bg-maestro-warning/[0.04] p-4 space-y-3">
@@ -779,7 +880,7 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-info text-maestro-accent"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
             <span class="text-[10px] font-semibold text-maestro-text-tertiary uppercase tracking-wide">Rationale</span>
           </div>
-          <p class="text-[13px] text-maestro-text-primary leading-relaxed">Trip departs within 4 hours — confirm boarding passes, transfers, and day-of contact reach.</p>
+          <p class="text-[13px] text-maestro-text-primary leading-relaxed">${desc}</p>
         </div>
         <div>
           <p class="text-xs font-semibold text-maestro-text-primary mb-2">Notes</p>
@@ -790,6 +891,24 @@
 
     document.body.appendChild(drawer);
     requestAnimationFrame(() => drawer.classList.add('af-open'));
+
+    const drawerAssigneeChip = drawer.querySelector('.af-assignee-chip');
+    if (drawerAssigneeChip) {
+      drawerAssigneeChip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showAssigneeMenu(drawerAssigneeChip, assigneeId, (newId) => {
+          assigneeId = newId;
+          const newM = MEMBERS.find((x) => x.id === newId) || UNASSIGNED;
+          if (newM.id === 'unassigned') {
+            drawerAssigneeChip.innerHTML = `${memberAvatar(newM, 16)}<span>Assign</span>${S(IC.chevD, 'width="11" height="11"')}`;
+            drawerAssigneeChip.classList.add('af-unassigned');
+          } else {
+            drawerAssigneeChip.innerHTML = `${memberAvatar(newM, 16)}<span>${newM.name}</span>${S(IC.chevD, 'width="11" height="11"')}`;
+            drawerAssigneeChip.classList.remove('af-unassigned');
+          }
+        });
+      });
+    }
 
     drawer.querySelector('.af-drawer-close').addEventListener('click', () => {
       drawer.classList.remove('af-open');

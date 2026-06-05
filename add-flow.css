@@ -351,13 +351,25 @@
 .af-tc-sig { font-size: 9px; font-weight: 600; color: var(--color-maestro-warning); background: color-mix(in srgb, var(--color-maestro-warning) 14%, transparent); border-radius: 5px; padding: 1px 5px; white-space: nowrap; }
 .af-tc-status { margin-left: auto; font-size: 9px; font-weight: 500; color: var(--color-maestro-text-tertiary); background: var(--color-maestro-surface); border-radius: 999px; padding: 1px 7px; transition: opacity .12s; }
 .af-tc-title { font-size: 12px; font-weight: 600; line-height: 1.35; color: var(--color-maestro-text-primary); margin: 0; }
-.af-tc-desc { font-size: 11px; line-height: 1.4; color: var(--color-maestro-text-tertiary); margin: 2px 0 0; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
-.af-tc-acts { position: absolute; top: 7px; right: 9px; display: flex; gap: 3px; opacity: 0; pointer-events: none; transition: opacity .12s; }
+.af-tc-desc { font-size: 11px; line-height: 1.4; color: var(--color-maestro-text-tertiary); margin: 2px 0 0; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.af-tc-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; min-height: 24px; }
+.af-tc-acts { display: flex; gap: 3px; opacity: 0; pointer-events: none; transition: opacity .12s; }
 .af-task-card2:hover .af-tc-acts { opacity: 1; pointer-events: auto; }
-.af-task-card2:hover .af-tc-status { opacity: 0; }
 .af-tc-act { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--color-maestro-border); background: var(--color-maestro-card); color: var(--color-maestro-text-secondary); cursor: pointer; transition: background .12s, color .12s, border-color .12s; }
 .af-tc-approve:hover { background: var(--color-maestro-accent); border-color: var(--color-maestro-accent); color: var(--color-maestro-on-accent); }
 .af-tc-dismiss:hover { color: var(--color-maestro-danger); border-color: color-mix(in srgb, var(--color-maestro-danger) 40%, var(--color-maestro-border)); }
+
+/* ---- Assignee chip + dropdown ---- */
+.af-assignee-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 7px 3px 4px; border-radius: 9999px; border: 1px solid var(--color-maestro-border); background: var(--color-maestro-surface); color: var(--color-maestro-text-secondary); cursor: pointer; transition: border-color .12s, background .12s, color .12s; }
+.af-assignee-chip:hover { border-color: var(--color-maestro-accent); background: color-mix(in srgb, var(--color-maestro-accent) 8%, transparent); color: var(--color-maestro-text-primary); }
+.af-assignee-chip.af-unassigned { border-style: dashed; }
+.af-assignee-chip svg { flex-shrink: 0; color: var(--color-maestro-text-tertiary); }
+
+.af-assignee-menu { position: fixed; z-index: 10004; background: var(--color-maestro-card); border: 1px solid var(--color-maestro-border); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.4); padding: 4px; min-width: 180px; opacity: 0; transform: translateY(-4px); pointer-events: none; transition: opacity .15s, transform .15s; }
+.af-assignee-menu.af-open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+.af-assignee-item { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 10px; border-radius: 7px; background: transparent; border: none; color: var(--color-maestro-text-primary); font-size: 12px; font-weight: 500; text-align: left; cursor: pointer; transition: background .12s; }
+.af-assignee-item:hover { background: var(--color-maestro-surface); }
+.af-assignee-item.af-selected { background: color-mix(in srgb, var(--color-maestro-accent) 12%, transparent); }
 
 /* ---- Toast ---- */
 .af-toast {
