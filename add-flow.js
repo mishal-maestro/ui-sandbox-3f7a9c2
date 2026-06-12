@@ -226,9 +226,15 @@
     if (tripDateEl && min && max) tripDateEl.textContent = `${fromYMD(min)} - ${fromYMD(max)}`;
   }
 
+  /* ---- party composition (adults/children/rooms) ---- */
+  const PARTY_CAPS = { adults: { min: 1, max: 12 }, children: { min: 0, max: 8 }, rooms: { min: 1, max: 8 } };
+  function pluralize(count, singular, plural) {
+    return count === 1 ? singular : (plural || singular + 's');
+  }
+
   /* ---- DOM scaffold ---- */
   let scrim, sheet, headEl, bodyEl, footEl, toastEl, toastT;
-  const st = { mode: null, step: null, type: null, name: '', collection: '', dest: '', onAdded: null };
+  const st = { mode: null, step: null, type: null, name: '', collection: '', dest: '', onAdded: null, adults: 2, children: 0, rooms: 1 };
 
   function build() {
     scrim = document.createElement('div');
@@ -267,7 +273,7 @@
   }
 
   function open(opts) {
-    Object.assign(st, { mode: opts.mode, type: opts.type || null, name: '', collection: opts.collection || '', dest: opts.dest || '', day: opts.day || '', dayDate: opts.dayDate || '', start: opts.start || '', end: opts.end || '', dateEl: opts.dateEl || null, genTypes: new Set(), onAdded: opts.onAdded || null });
+    Object.assign(st, { mode: opts.mode, type: opts.type || null, name: '', collection: opts.collection || '', dest: opts.dest || '', day: opts.day || '', dayDate: opts.dayDate || '', start: opts.start || '', end: opts.end || '', dateEl: opts.dateEl || null, genTypes: new Set(), onAdded: opts.onAdded || null, adults: 2, children: 0, rooms: 1 });
     if (opts.mode === 'newCollection') renderTypeStep();
     else if (opts.mode === 'editCollection') renderEditCollection();
     else renderChoice();
@@ -287,7 +293,7 @@
     bodyEl.innerHTML = `
       <div class="af-section">
         <label class="af-caps">Collection Name</label>
-        <input class="af-input" id="af-cname" maxlength="120" placeholder='e.g. "Paris Hotels"'>
+        <input class="af-input" id="af-cname" maxlength="120" placeholder='e.g. "Paris Hotels"' value="${st.name || ''}">
       </div>
       <div class="af-section">
         <label class="af-caps">Include in this generation</label>
@@ -302,6 +308,44 @@
           <div class="af-field"><label class="af-label">End date</label><input type="date" class="af-input af-date" id="af-cend" value="${defStart}"></div>
         </div>
         <p class="af-subnote" style="margin:6px 0 0">Components added to this collection inherit these dates.</p>
+      </div>
+      <div class="af-section">
+        <label class="af-caps">Party Composition</label>
+        <div class="af-party-grid">
+          <div class="af-party-field">
+            <div class="af-party-label" id="af-adults-label">ADULTS<span class="af-party-sublabel">Ages 18+</span></div>
+            <div class="af-stepper" role="group" aria-labelledby="af-adults-label" id="af-adults-stepper">
+              <button type="button" class="af-stepper-btn" data-party="adults" data-delta="-1" aria-label="Decrease adults" title="Decrease adults">−</button>
+              <output class="af-stepper-value" id="af-adults-value">${st.adults}</output>
+              <button type="button" class="af-stepper-btn" data-party="adults" data-delta="1" aria-label="Increase adults" title="Increase adults">+</button>
+            </div>
+          </div>
+          <div class="af-party-field">
+            <div class="af-party-label" id="af-children-label">CHILDREN<span class="af-party-sublabel">Ages 0-17</span></div>
+            <div class="af-stepper" role="group" aria-labelledby="af-children-label" id="af-children-stepper">
+              <button type="button" class="af-stepper-btn" data-party="children" data-delta="-1" aria-label="Decrease children" title="Decrease children">−</button>
+              <output class="af-stepper-value" id="af-children-value">${st.children}</output>
+              <button type="button" class="af-stepper-btn" data-party="children" data-delta="1" aria-label="Increase children" title="Increase children">+</button>
+            </div>
+          </div>
+          <div class="af-party-field">
+            <div class="af-party-label" id="af-travelers-label">TRAVELERS</div>
+            <div class="af-travelers-display" aria-label="Total travelers, calculated from adults plus children">
+              <output class="af-travelers-value" id="af-travelers-value">${st.adults + st.children}</output>
+              <span class="af-travelers-auto">Auto</span>
+            </div>
+          </div>
+          <div class="af-party-field">
+            <div class="af-party-label" id="af-rooms-label">ROOMS</div>
+            <div class="af-stepper" role="group" aria-labelledby="af-rooms-label" id="af-rooms-stepper">
+              <button type="button" class="af-stepper-btn" data-party="rooms" data-delta="-1" aria-label="Decrease rooms" title="Decrease rooms">−</button>
+              <output class="af-stepper-value" id="af-rooms-value">${st.rooms}</output>
+              <button type="button" class="af-stepper-btn" data-party="rooms" data-delta="1" aria-label="Increase rooms" title="Increase rooms">+</button>
+            </div>
+          </div>
+        </div>
+        <div id="af-rooms-warning" class="af-rooms-warning" style="display:none;">Each room needs at least one adult at check-in.</div>
+        <p class="af-party-helper" id="af-party-helper" aria-live="polite"></p>
       </div>`;
     footEl.innerHTML = `<button class="af-btn af-btn-ghost" data-cancel>Cancel</button><div class="af-spacer"></div><button class="af-btn af-btn-primary" data-create disabled title="Name this collection to continue">Create Collection</button>`;
 
@@ -313,6 +357,7 @@
     nameInput.addEventListener('input', () => { st.name = nameInput.value; sync(); });
     startInput.addEventListener('change', () => { st.start = startInput.value; if (endInput.value && endInput.value < startInput.value) endInput.value = startInput.value; st.end = endInput.value; });
     endInput.addEventListener('change', () => { st.end = endInput.value; });
+    sync(); // Sync initial state
     bodyEl.querySelectorAll('.af-gentype').forEach((tile) => {
       tile.addEventListener('click', () => {
         const on = tile.getAttribute('aria-pressed') === 'true';
@@ -321,6 +366,18 @@
         if (on) st.genTypes.delete(tile.dataset.type); else st.genTypes.add(tile.dataset.type);
       });
     });
+
+    // Party composition event handlers
+    bodyEl.querySelectorAll('[data-party]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const field = btn.dataset.party;
+        const delta = parseInt(btn.dataset.delta, 10);
+        stepParty(field, delta);
+      });
+    });
+
+    updatePartyUI();
+
     footEl.querySelector('[data-cancel]').addEventListener('click', close);
     createBtn.addEventListener('click', () => {
       st.collection = st.name.trim();
@@ -328,6 +385,63 @@
       st.type = [...st.genTypes][0] || 'experiences';
       renderChoice();
     });
+  }
+
+  function stepParty(field, delta) {
+    const caps = PARTY_CAPS[field];
+    const newVal = st[field] + delta;
+    if (newVal < caps.min || newVal > caps.max) return;
+    st[field] = newVal;
+    updatePartyUI();
+  }
+
+  function updatePartyUI() {
+    const adultsVal = bodyEl.querySelector('#af-adults-value');
+    const childrenVal = bodyEl.querySelector('#af-children-value');
+    const travelersVal = bodyEl.querySelector('#af-travelers-value');
+    const roomsVal = bodyEl.querySelector('#af-rooms-value');
+    const helper = bodyEl.querySelector('#af-party-helper');
+    const roomsWarning = bodyEl.querySelector('#af-rooms-warning');
+
+    if (!adultsVal) return; // Not on the right step
+
+    adultsVal.textContent = st.adults;
+    childrenVal.textContent = st.children;
+    travelersVal.textContent = st.adults + st.children;
+    roomsVal.textContent = st.rooms;
+
+    // Update button states
+    bodyEl.querySelectorAll('[data-party]').forEach((btn) => {
+      const field = btn.dataset.party;
+      const delta = parseInt(btn.dataset.delta, 10);
+      const caps = PARTY_CAPS[field];
+      const newVal = st[field] + delta;
+      const disabled = newVal < caps.min || newVal > caps.max;
+      btn.disabled = disabled;
+      if (disabled && delta > 0) {
+        btn.title = `Maximum ${caps.max} ${field}`;
+      } else if (disabled && delta < 0) {
+        btn.title = `Minimum ${caps.min} ${field}`;
+      } else {
+        btn.title = delta > 0 ? `Increase ${field}` : `Decrease ${field}`;
+      }
+    });
+
+    // Rooms warning
+    if (st.rooms > st.adults) {
+      roomsWarning.style.display = 'block';
+    } else {
+      roomsWarning.style.display = 'none';
+    }
+
+    // Helper text
+    const travelers = st.adults + st.children;
+    const travelerWord = pluralize(travelers, 'traveler');
+    const adultWord = pluralize(st.adults, 'adult');
+    const childWord = pluralize(st.children, 'child', 'children');
+    const roomWord = pluralize(st.rooms, 'room');
+
+    helper.textContent = `Party: ${travelers} ${travelerWord} (${st.adults} ${adultWord}, ${st.children} ${childWord}), ${st.rooms} ${roomWord}. Every hotel option in this collection inherits this party; each room gets its own rate on the Pricing tab.`;
   }
 
   /* ---- Edit Collection (dates moved only at the collection level) ---- */

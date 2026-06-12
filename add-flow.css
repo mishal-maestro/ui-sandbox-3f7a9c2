@@ -236,6 +236,26 @@
 .af-btn-outline:hover { border-color: var(--color-maestro-border-hover); background: var(--color-maestro-surface); }
 .af-foot .af-spacer { margin-left: auto; }
 
+/* ---- Party composition (Add New Collection) ---- */
+.af-party-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.af-party-field { display: flex; flex-direction: column; gap: 6px; }
+.af-party-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--color-maestro-text-tertiary); display: flex; flex-direction: column; gap: 2px; }
+.af-party-sublabel { font-size: 10px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+
+.af-stepper { display: flex; align-items: center; gap: 8px; border: 1px solid var(--color-maestro-border); border-radius: 7px; background: var(--color-maestro-surface); padding: 6px; }
+.af-stepper-btn { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; border: 1px solid var(--color-maestro-border); background: var(--color-maestro-card); color: var(--color-maestro-text-primary); font-size: 16px; font-weight: 600; cursor: pointer; transition: background .12s, border-color .12s; }
+.af-stepper-btn:hover:not(:disabled) { background: var(--color-maestro-surface); border-color: var(--color-maestro-border-hover); }
+.af-stepper-btn:disabled { opacity: .3; cursor: not-allowed; }
+.af-stepper-value { flex: 1; text-align: center; font-size: 14px; font-weight: 600; color: var(--color-maestro-text-primary); font-variant-numeric: tabular-nums; }
+
+.af-travelers-display { display: flex; align-items: center; gap: 8px; border: 1px solid var(--color-maestro-border); border-radius: 7px; background: var(--color-maestro-surface); padding: 6px 12px; opacity: .75; }
+.af-travelers-value { flex: 1; text-align: center; font-size: 14px; font-weight: 600; color: var(--color-maestro-text-primary); font-variant-numeric: tabular-nums; }
+.af-travelers-auto { font-size: 10px; color: var(--color-maestro-text-tertiary); text-transform: uppercase; letter-spacing: .04em; }
+
+.af-rooms-warning { font-size: 11px; color: var(--color-maestro-warning); margin-top: 6px; }
+
+.af-party-helper { font-size: 11px; color: var(--color-maestro-text-secondary); line-height: 1.45; margin-top: 8px; margin-bottom: 0; }
+
 /* ---- Back link ---- */
 .af-back {
   display: inline-flex; align-items: center; gap: 5px; cursor: pointer;
