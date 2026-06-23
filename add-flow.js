@@ -277,7 +277,8 @@
     if (opts.mode === 'newCollection') renderTypeStep();
     else if (opts.mode === 'editCollection') renderEditCollection();
     else renderChoice();
-    requestAnimationFrame(() => { scrim.classList.add('af-open'); sheet.classList.add('af-open'); });
+    scrim.classList.add('af-open');
+    sheet.classList.add('af-open');
   }
   function close() { scrim.classList.remove('af-open'); sheet.classList.remove('af-open'); }
 
