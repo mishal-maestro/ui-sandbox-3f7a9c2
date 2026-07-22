@@ -51,11 +51,17 @@
     const titleEl = countEl && countEl.previousElementSibling;
     return titleEl ? titleEl.textContent.trim() : 'Collection';
   }
+  function cityOf(name) {
+    return (name || '').replace(/,?\s*Thailand\s*/i, ' ').replace(/\b(Hotels?|Dining|Experiences?|Flights?|Transfers?|Notes?)\b/gi, ' ').replace(/\s+/g, ' ').trim();
+  }
   function scan() {
     return [...document.querySelectorAll('.af-coll-date')].map((chip) => {
       const name = nameOfChip(chip);
       const type = chip.dataset.dcType || AF().inferType(name);
-      return { name, type, chip, start: chip.dataset.start, end: chip.dataset.end || chip.dataset.start };
+      const countEl = chip.previousElementSibling;
+      const count = chip.dataset.dcCount || ((countEl && ((countEl.textContent || '').match(/(\d+)\s*option/) || [])[1]) || '');
+      const city = chip.dataset.dcCity || cityOf(name);
+      return { name, type, chip, count, city, start: chip.dataset.start, end: chip.dataset.end || chip.dataset.start };
     }).filter((c) => c.start);
   }
 
@@ -179,12 +185,19 @@
       ? `${plural(unaffected.length, 'collection')} before the change keep${unaffected.length === 1 ? 's' : ''} their dates (${summarizeNames(unaffected)}).`
       : '';
 
+    const meta = (d) => {
+      const bits = [];
+      if (d.city) bits.push(d.city);
+      if (d.count) bits.push(`${d.count} option${String(d.count) === '1' ? '' : 's'}`);
+      return bits.join(' · ');
+    };
     const row = (d, i) => `
       <label class="dc-row" data-i="${i}">
         <input type="checkbox" class="dc-cb">
         <span class="dc-row-ic">${icon(d.type)}</span>
         <span class="dc-row-main">
           <span class="dc-row-name">${d.name}</span>
+          ${meta(d) ? `<span class="dc-row-meta">${meta(d)}</span>` : ''}
           <span class="dc-row-reason">${d.reason}</span>
           <span class="dc-row-warn">${icon('x', 'width="10" height="10"')} Conflicts with the new ${edited.shortName} dates if left on ${shortRange(d.start, d.end)}</span>
         </span>
@@ -203,13 +216,14 @@
         <div class="dc-hd">
           <div>
             <div class="dc-title">Move dependent collections too?</div>
-            <div class="dc-sub">These collections are scheduled around ${edited.shortName}. Tick the ones that should move with it; unticked collections keep their current dates. Nothing changes until you confirm.</div>
+            <div class="dc-sub">These collections are scheduled around ${edited.name}. Tick the ones that should move with it; unticked collections keep their current dates. Nothing changes until you confirm.</div>
           </div>
           <button class="dc-x" title="Discard the date change entirely" aria-label="Close">${icon('x')}</button>
         </div>
         <div class="dc-edit-summary">
           <span class="dc-row-ic">${icon(edited.type)}</span>
           <span class="dc-es-name">${edited.name}</span>
+          ${edited.count ? `<span class="dc-es-meta">${edited.count} option${String(edited.count) === '1' ? '' : 's'}</span>` : ''}
           <span class="dc-row-dates">
             <span class="dc-old">${shortRange(edited.s0, edited.e0)}</span>
             <span class="dc-arrow">→</span>
@@ -249,10 +263,10 @@
       deps.forEach((d, i) => { d.selected = cbs[i].checked; });
       const n = deps.filter((d) => d.selected).length;
       selCount.textContent = `${n} selected`;
-      applyBtn.textContent = n === 0 ? `Move only ${edited.shortName}` : `Move ${edited.shortName} + shift ${n}`;
+      applyBtn.textContent = n === 0 ? `Move only ${edited.name}` : `Move ${edited.name} + shift ${n}`;
       applyBtn.title = n === 0
-        ? `Moves only ${edited.shortName}; all ${deps.length} listed collections keep their current dates`
-        : `Moves ${edited.shortName} and shifts the ${n} ticked collection${n === 1 ? '' : 's'}`;
+        ? `Moves only ${edited.name}; all ${deps.length} listed collections keep their current dates`
+        : `Moves ${edited.name} and shifts the ${n} ticked collection${n === 1 ? '' : 's'}`;
       modal.querySelectorAll('.dc-row').forEach((rowEl, i) => {
         const d = deps[i];
         rowEl.classList.toggle('dc-unticked', !d.selected);
@@ -292,8 +306,8 @@
       AF().computeTrip && AF().computeTrip();
       const kept = deps.length - moved.length;
       AF().toast && AF().toast(moved.length
-        ? `Moved ${edited.shortName} · shifted ${plural(moved.length, 'collection')}${kept ? ` · ${kept} kept` : ''}`
-        : `Moved ${edited.shortName} · all ${plural(kept, 'dependent')} kept their dates`);
+        ? `Moved ${edited.name} · shifted ${plural(moved.length, 'collection')}${kept ? ` · ${kept} kept` : ''}`
+        : `Moved ${edited.name} · all ${plural(kept, 'dependent')} kept their dates`);
       destroy();
       if (onDone) onDone(moved.length ? 'shift' : 'keep');
     });
@@ -317,9 +331,10 @@
   /* ---- entry point from add-flow.js (Edit Collection save) ---- */
   function onCollectionDateSave({ name, type, dateEl, newStart, newEnd, applyToSelf }) {
     const s0 = dateEl.dataset.start, e0 = dateEl.dataset.end || dateEl.dataset.start;
-    const edited = { name, shortName: shortName(name), type, chip: dateEl, s0, e0, s1: newStart, e1: newEnd };
     if (s0 === newStart && e0 === newEnd) { AF().close && AF().close(); return; }
     const registry = scan();
+    const self = registry.find((k) => k.chip === dateEl) || {};
+    const edited = { name, shortName: shortName(name), type, chip: dateEl, s0, e0, s1: newStart, e1: newEnd, count: self.count, city: self.city };
     const deps = computeDependents(edited, registry);
     if (!deps.length) {
       applyToSelf();
@@ -329,8 +344,10 @@
     openCascadeModal({ edited, deps, registry, applyToSelf });
   }
 
-  /* ---- demo seeds: flights + transfers the snapshot doesn't have ---- */
-  function seedCard({ name, type, sub, start, end }) {
+  /* ---- demo seeds: flight + transfer COLLECTIONS the snapshot doesn't
+     have. Same model as every other collection: a named group holding
+     multiple component options, with one date chip at collection level. ---- */
+  function seedCard({ name, type, city, count, sub, start, end }) {
     const card = document.createElement('div');
     card.className = 'dc-seed-card';
     card.innerHTML = `
@@ -339,8 +356,8 @@
         <span class="dc-seed-title">${name}</span>
         <span class="dc-seed-sub">${sub}</span>
       </span>
-      <span class="dc-seed-count">1 option</span>
-      <span class="af-coll-date" data-start="${start}" data-end="${end || start}" data-dc-name="${name}" data-dc-type="${type}">${icon('cal', 'width="11" height="11"')} ${AF().rangeLabel(start, end || start)}</span>
+      <span class="dc-seed-count">${count} option${count === 1 ? '' : 's'}</span>
+      <span class="af-coll-date" data-start="${start}" data-end="${end || start}" data-dc-name="${name}" data-dc-type="${type}" data-dc-city="${city}" data-dc-count="${count}">${icon('cal', 'width="11" height="11"')} ${AF().rangeLabel(start, end || start)}</span>
       <button type="button" class="af-edit-coll" title="Edit ${name} (move dates)">${icon('pencilSm', 'width="13" height="13"')}</button>`;
     const chip = card.querySelector('.af-coll-date');
     card.querySelector('.af-edit-coll').addEventListener('click', () => {
@@ -367,15 +384,15 @@
       const first = hotels[0];
       const firstSec = first.chip.closest('section');
       if (firstSec) {
-        firstSec.appendChild(seedCard({ name: 'Arrival Flight · LAX → BKK', type: 'flights', sub: 'Thai Airways TG693 · arrives 07:35 · Business', start: first.start }));
-        firstSec.appendChild(seedCard({ name: 'Airport Transfer · BKK', type: 'transfers', sub: 'Private car, airport to hotel · meet at arrivals', start: first.start }));
+        firstSec.appendChild(seedCard({ name: 'Bangkok Arrival Flights', type: 'flights', city: 'Bangkok', count: 3, sub: 'LAX → BKK · Thai Airways, Qatar Airways, EVA options', start: first.start }));
+        firstSec.appendChild(seedCard({ name: 'Bangkok Airport Transfers', type: 'transfers', city: 'Bangkok', count: 2, sub: 'Airport to hotel · private car and luxury van options', start: first.start }));
       }
       const second = hotels[1];
       if (second) {
         const secondSec = second.chip.closest('section');
         if (secondSec) {
-          secondSec.appendChild(seedCard({ name: 'Flight · BKK → CNX', type: 'flights', sub: 'Thai Airways TG102 · 10:35 → 11:55 · Business', start: second.start }));
-          secondSec.appendChild(seedCard({ name: 'Airport Transfer · CNX', type: 'transfers', sub: 'Private car, airport to hotel', start: second.start }));
+          secondSec.appendChild(seedCard({ name: 'Bangkok to Chiang Mai Flights', type: 'flights', city: 'Chiang Mai', count: 3, sub: 'BKK → CNX · morning and midday options', start: second.start }));
+          secondSec.appendChild(seedCard({ name: 'Chiang Mai Airport Transfers', type: 'transfers', city: 'Chiang Mai', count: 1, sub: 'Airport to hotel · private car', start: second.start }));
         }
       }
     }
@@ -383,26 +400,26 @@
   }
 
   /* ---- isolated harness support (test-cascade.html) ---- */
-  function demoEntry(name, type, start, end) {
+  function demoEntry(name, type, start, end, city, count) {
     const chip = document.createElement('span'); // detached; carries dates only
     chip.dataset.start = start; chip.dataset.end = end || start;
-    return { name, type, chip, start, end: end || start };
+    return { name, type, chip, start, end: end || start, city: city || cityOf(name), count: count || '' };
   }
   function openDemo(scenario) {
-    const bkk = demoEntry('Bangkok, Thailand Hotels', 'hotels', '2024-05-24', '2024-05-27');
-    const cnx = demoEntry('Chiang Mai, Thailand Hotels', 'hotels', '2024-05-27', '2024-05-29');
-    const interFlight = demoEntry('Flight · BKK → CNX', 'flights', '2024-05-27');
+    const bkk = demoEntry('Bangkok, Thailand Hotels', 'hotels', '2024-05-24', '2024-05-27', 'Bangkok', 4);
+    const cnx = demoEntry('Chiang Mai, Thailand Hotels', 'hotels', '2024-05-27', '2024-05-29', 'Chiang Mai', 4);
+    const interFlight = demoEntry('Bangkok to Chiang Mai Flights', 'flights', '2024-05-27', '', 'Chiang Mai', 3);
     const registry = [
       bkk,
-      demoEntry('Arrival Flight · LAX → BKK', 'flights', '2024-05-24'),
-      demoEntry('Airport Transfer · BKK', 'transfers', '2024-05-24'),
-      demoEntry('Bangkok Experiences', 'experiences', '2024-05-24'),
-      demoEntry('Bangkok Dining', 'dining', '2024-05-25'),
-      demoEntry('Bangkok Dining', 'dining', '2024-05-26'),
+      demoEntry('Bangkok Arrival Flights', 'flights', '2024-05-24', '', 'Bangkok', 3),
+      demoEntry('Bangkok Airport Transfers', 'transfers', '2024-05-24', '', 'Bangkok', 2),
+      demoEntry('Bangkok Experiences', 'experiences', '2024-05-24', '', 'Bangkok', 5),
+      demoEntry('Bangkok Dining', 'dining', '2024-05-25', '', 'Bangkok', 4),
+      demoEntry('Bangkok Dining', 'dining', '2024-05-26', '', 'Bangkok', 4),
       interFlight,
-      demoEntry('Airport Transfer · CNX', 'transfers', '2024-05-27'),
+      demoEntry('Chiang Mai Airport Transfers', 'transfers', '2024-05-27', '', 'Chiang Mai', 1),
       cnx,
-      demoEntry('Chiang Mai Dining', 'dining', '2024-05-27'),
+      demoEntry('Chiang Mai Dining', 'dining', '2024-05-27', '', 'Chiang Mai', 2),
     ];
     const baseTrip = { min: '2024-05-24', max: '2024-05-29' };
     const noop = () => {};
@@ -412,11 +429,11 @@
     }
     let edited;
     if (scenario === 'shift') {
-      edited = { name: bkk.name, shortName: shortName(bkk.name), type: 'hotels', chip: bkk.chip, s0: bkk.start, e0: bkk.end, s1: '2024-05-25', e1: '2024-05-28' };
+      edited = { name: bkk.name, shortName: shortName(bkk.name), type: 'hotels', chip: bkk.chip, s0: bkk.start, e0: bkk.end, s1: '2024-05-25', e1: '2024-05-28', count: bkk.count, city: bkk.city };
     } else if (scenario === 'flight') {
-      edited = { name: interFlight.name, shortName: shortName(interFlight.name), type: 'flights', chip: interFlight.chip, s0: interFlight.start, e0: interFlight.end, s1: '2024-05-28', e1: '2024-05-28' };
+      edited = { name: interFlight.name, shortName: shortName(interFlight.name), type: 'flights', chip: interFlight.chip, s0: interFlight.start, e0: interFlight.end, s1: '2024-05-28', e1: '2024-05-28', count: interFlight.count, city: interFlight.city };
     } else {
-      edited = { name: bkk.name, shortName: shortName(bkk.name), type: 'hotels', chip: bkk.chip, s0: bkk.start, e0: bkk.end, s1: bkk.start, e1: '2024-05-29' };
+      edited = { name: bkk.name, shortName: shortName(bkk.name), type: 'hotels', chip: bkk.chip, s0: bkk.start, e0: bkk.end, s1: bkk.start, e1: '2024-05-29', count: bkk.count, city: bkk.city };
     }
     const deps = computeDependents(edited, registry);
     openCascadeModal({ edited, deps, registry, applyToSelf: noop, baseTrip });
