@@ -44,8 +44,11 @@
     <p class="test-note" style="margin-top: 28px;">
       Things to try inside the modal: nothing is ticked by default, so the confirm button reads "Move only
       [collection]" until you opt collections in · tick a row and watch the button, count, and trip banner update
-      live · rows left unticked show a conflict warning when their kept date sits inside the edited collection's
-      new span · Select all / Clear for bulk ticking · Cancel, X, or Escape discards the edit entirely.
+      live · <b>click any proposed date to type your own</b> (row auto-ticks, "custom" pill + Reset appear, ranges
+      keep their length) · <b>"Shift all selected by N days"</b> overrides every ticked row at once ·
+      conflict warnings are class-aware (items that belong inside the stay warn when left outside it; boundary
+      and downstream items warn when they land inside it) · Select all / Clear for bulk ticking · Cancel, X, or
+      Escape discards the edit entirely.
     </p>
   </div>
 

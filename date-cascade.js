@@ -66,9 +66,13 @@
   }
 
   /* ---- dependency engine (any collection can drive a cascade) ---- */
-  // selected defaults to FALSE: nothing moves unless the advisor opts in
-  function mkDep(k, shift, reason) {
-    return { ...k, newStart: addDays(k.start, shift), newEnd: addDays(k.end, shift), reason, shift, selected: false };
+  // selected defaults to FALSE: nothing moves unless the advisor opts in.
+  // cls drives the conflict semantics: 'within' items must stay INSIDE the
+  // edited stay's new span; 'anchor'/'after' items conflict when they land
+  // inside it.
+  function mkDep(k, shift, reason, cls) {
+    const ns = addDays(k.start, shift), ne = addDays(k.end, shift);
+    return { ...k, newStart: ns, newEnd: ne, sysStart: ns, sysEnd: ne, reason, shift, cls, selected: false, manual: false };
   }
 
   // Stay driver: flights/transfers on the boundaries re-anchor, day-anchored
@@ -80,20 +84,20 @@
     const out = [];
     registry.forEach((k) => {
       if (seen.has(k.chip)) return;
-      let shift = 0, reason = '';
+      let shift = 0, reason = '', cls = '';
       const anchorType = (k.type === 'flights' || k.type === 'transfers');
       if (anchorType && k.start === s0) {
-        shift = dStart; reason = `${k.type === 'flights' ? 'Flight' : 'Transfer'} anchored to ${edited.shortName} check-in`;
+        shift = dStart; cls = 'anchor'; reason = `${k.type === 'flights' ? 'Flight' : 'Transfer'} anchored to ${edited.shortName} check-in`;
       } else if (anchorType && k.start === e0) {
-        shift = dEnd; reason = `${k.type === 'flights' ? 'Flight' : 'Transfer'} anchored to ${edited.shortName} check-out`;
+        shift = dEnd; cls = 'anchor'; reason = `${k.type === 'flights' ? 'Flight' : 'Transfer'} anchored to ${edited.shortName} check-out`;
       } else if (k.start >= e0) {
-        shift = dEnd; reason = k.type === 'hotels'
+        shift = dEnd; cls = 'after'; reason = k.type === 'hotels'
           ? `Check-in follows ${edited.shortName} check-out`
           : `Scheduled after the ${edited.shortName} stay, keeps its place in the trip`;
       } else if (k.start >= s0 && k.start < e0) {
-        shift = dStart; reason = `Day-anchored within the ${edited.shortName} stay`;
+        shift = dStart; cls = 'within'; reason = `Day-anchored within the ${edited.shortName} stay`;
       }
-      if (shift !== 0) { seen.add(k.chip); out.push(mkDep(k, shift, reason)); }
+      if (shift !== 0) { seen.add(k.chip); out.push(mkDep(k, shift, reason, cls)); }
     });
     return out;
   }
@@ -109,16 +113,16 @@
     registry.forEach((k) => {
       if (seen.has(k.chip)) return;
       if (k.type === 'transfers' && k.start === edited.s0) {
-        seen.add(k.chip); out.push(mkDep(k, d, 'Transfer meets this flight'));
+        seen.add(k.chip); out.push(mkDep(k, d, 'Transfer meets this flight', 'anchor'));
       }
     });
     registry.forEach((k) => {
       if (seen.has(k.chip) || k.type !== 'hotels') return;
       let dep = null;
       if (k.start === edited.s0) {
-        dep = mkDep(k, d, 'Check-in follows the new flight date, nights preserved');
+        dep = mkDep(k, d, 'Check-in follows the new flight date, nights preserved', 'anchor');
       } else if (k.end === edited.s0) {
-        dep = { ...k, newStart: k.start, newEnd: addDays(k.end, d), reason: `Check-out follows the new flight date (${d > 0 ? 'extra' : 'fewer'} night${Math.abs(d) === 1 ? '' : 's'} in ${shortName(k.name)})`, shift: d, selected: false };
+        dep = { ...k, newStart: k.start, newEnd: addDays(k.end, d), sysStart: k.start, sysEnd: addDays(k.end, d), reason: `Check-out follows the new flight date (${d > 0 ? 'extra' : 'fewer'} night${Math.abs(d) === 1 ? '' : 's'} in ${shortName(k.name)})`, shift: d, cls: 'anchor', selected: false, manual: false };
       }
       if (dep) {
         seen.add(k.chip); out.push(dep);
@@ -199,12 +203,14 @@
           <span class="dc-row-name">${d.name}</span>
           ${meta(d) ? `<span class="dc-row-meta">${meta(d)}</span>` : ''}
           <span class="dc-row-reason">${d.reason}</span>
-          <span class="dc-row-warn">${icon('x', 'width="10" height="10"')} Conflicts with the new ${edited.shortName} dates if left on ${shortRange(d.start, d.end)}</span>
+          <span class="dc-row-warn"></span>
         </span>
         <span class="dc-row-dates">
           <span class="dc-old">${shortRange(d.start, d.end)}</span>
           <span class="dc-arrow">→</span>
-          <span class="dc-new">${shortRange(d.newStart, d.newEnd)}</span>
+          <button type="button" class="dc-new" title="Click to set a custom date">${shortRange(d.newStart, d.newEnd)}</button>
+          <span class="dc-custom-pill">custom</span>
+          <button type="button" class="dc-reset" title="Back to the suggested date">Reset</button>
         </span>
       </label>`;
 
@@ -240,6 +246,13 @@
               <button class="dc-selall" id="dc-clear">Clear</button>
             </span>
           </div>
+          <div class="dc-bulk">
+            <span>Shift all selected by</span>
+            <input type="number" class="dc-bulk-n" id="dc-bulk-n" step="1" value="${dEnd || dStart}">
+            <span>days</span>
+            <button type="button" class="af-btn af-btn-outline af-btn-sm" id="dc-bulk-apply">Apply</button>
+            <span class="dc-bulk-hint">overrides the suggested dates for every ticked row</span>
+          </div>
           <div class="dc-rows">${deps.map(row).join('')}</div>
           ${unaffectedLine ? `<div class="dc-unaffected">${unaffectedLine}</div>` : ''}
         </div>
@@ -257,7 +270,10 @@
     const clearBtn = modal.querySelector('#dc-clear');
     const selCount = modal.querySelector('#dc-selcount');
     const banner = modal.querySelector('#dc-trip-banner');
+    const bulkN = modal.querySelector('#dc-bulk-n');
+    const bulkApply = modal.querySelector('#dc-bulk-apply');
     const cbs = [...modal.querySelectorAll('.dc-cb')];
+    const rowEls = [...modal.querySelectorAll('.dc-row')];
 
     const refresh = () => {
       deps.forEach((d, i) => { d.selected = cbs[i].checked; });
@@ -267,10 +283,20 @@
       applyBtn.title = n === 0
         ? `Moves only ${edited.name}; all ${deps.length} listed collections keep their current dates`
         : `Moves ${edited.name} and shifts the ${n} ticked collection${n === 1 ? '' : 's'}`;
-      modal.querySelectorAll('.dc-row').forEach((rowEl, i) => {
+      bulkApply.disabled = n === 0;
+      bulkN.disabled = n === 0;
+      rowEls.forEach((rowEl, i) => {
         const d = deps[i];
         rowEl.classList.toggle('dc-unticked', !d.selected);
-        rowEl.classList.toggle('dc-conflict', !d.selected && willConflict(d, edited));
+        rowEl.classList.toggle('dc-manual', d.manual);
+        rowEl.querySelector('.dc-new').textContent = shortRange(d.newStart, d.newEnd);
+        // conflicts: check the date that will actually be true after apply —
+        // the kept current date for unticked rows, the custom date when edited
+        const msg = !d.selected ? conflictFor(d, edited, d.start)
+          : (d.manual ? conflictFor(d, edited, d.newStart) : '');
+        const warnEl = rowEl.querySelector('.dc-row-warn');
+        warnEl.innerHTML = msg ? `${icon('x', 'width="10" height="10"')} ${msg}` : '';
+        rowEl.classList.toggle('dc-conflict', !!msg);
       });
       const { cur, next } = tripPreview(registry, edited, deps, baseTrip);
       if (cur.min && next.min && (cur.min !== next.min || cur.max !== next.max)) {
@@ -286,6 +312,62 @@
     cbs.forEach((cb) => cb.addEventListener('change', refresh));
     selAllBtn.addEventListener('click', () => { cbs.forEach((cb) => { cb.checked = true; }); refresh(); });
     clearBtn.addEventListener('click', () => { cbs.forEach((cb) => { cb.checked = false; }); refresh(); });
+
+    // per-row custom date: click the proposal -> inline date input
+    rowEls.forEach((rowEl, i) => {
+      const d = deps[i];
+      rowEl.querySelector('.dc-new').addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        if (rowEl.querySelector('.dc-new-input')) return;
+        const btn = rowEl.querySelector('.dc-new');
+        const inp = document.createElement('input');
+        inp.type = 'date'; inp.className = 'dc-new-input'; inp.value = d.newStart;
+        btn.style.display = 'none';
+        btn.insertAdjacentElement('afterend', inp);
+        inp.focus();
+        let finished = false;
+        const done = (commit) => {
+          if (finished) return; finished = true;
+          if (commit && inp.value) {
+            const dur = diffDays(d.start, d.end);
+            d.newStart = inp.value; d.newEnd = addDays(inp.value, dur);
+            d.manual = true;
+            cbs[i].checked = true; // you set a date, so this row is moving
+          }
+          inp.remove(); btn.style.display = '';
+          refresh();
+        };
+        inp.addEventListener('change', () => done(true));
+        inp.addEventListener('blur', () => done(false));
+        inp.addEventListener('keydown', (ev) => {
+          ev.stopPropagation();
+          if (ev.key === 'Escape') done(false);
+          if (ev.key === 'Enter') done(true);
+        });
+        inp.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); });
+      });
+      rowEl.querySelector('.dc-reset').addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        d.newStart = d.sysStart; d.newEnd = d.sysEnd;
+        d.manual = false;
+        refresh();
+      });
+    });
+
+    // bulk shift: override every ticked row's proposal with a uniform delta
+    bulkApply.addEventListener('click', () => {
+      const nDays = parseInt(bulkN.value, 10);
+      if (isNaN(nDays)) return;
+      deps.forEach((d) => {
+        if (!d.selected) return;
+        d.newStart = addDays(d.start, nDays);
+        d.newEnd = addDays(d.end, nDays);
+        d.manual = !(d.newStart === d.sysStart && d.newEnd === d.sysEnd);
+      });
+      refresh();
+    });
+    bulkN.addEventListener('keydown', (ev) => { ev.stopPropagation(); if (ev.key === 'Enter') bulkApply.click(); });
+
     refresh();
 
     const destroy = () => { modal.classList.remove('dc-open'); setTimeout(() => modal.remove(), 180); document.removeEventListener('keydown', onKey); };
@@ -313,9 +395,19 @@
     });
   }
 
-  function willConflict(d, edited) {
-    // unticked dependent whose current day falls inside the stay's NEW span
-    return d.start >= edited.s1 && d.start < (edited.e1 || edited.s1);
+  // Conflict semantics depend on the dependency class:
+  // - 'within' items belong INSIDE the edited collection's new span; they
+  //   conflict when the checked date falls outside it.
+  // - 'anchor'/'after' items belong at or beyond the boundaries; they
+  //   conflict when the checked date lands inside the new span (overlap).
+  // Returns a message, or '' when there is no conflict.
+  function conflictFor(d, edited, dateYMD) {
+    const s1 = edited.s1, e1 = edited.e1 || edited.s1;
+    const inSpan = dateYMD >= s1 && dateYMD < e1;
+    if (d.cls === 'within') {
+      return inSpan ? '' : `Falls outside the new ${edited.shortName} dates (${shortRange(s1, e1)})`;
+    }
+    return inSpan ? `Overlaps the new ${edited.shortName} dates (${shortRange(s1, e1)})` : '';
   }
 
   function summarizeNames(list) {
