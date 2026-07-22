@@ -60,8 +60,9 @@
   }
 
   /* ---- dependency engine (any collection can drive a cascade) ---- */
+  // selected defaults to FALSE: nothing moves unless the advisor opts in
   function mkDep(k, shift, reason) {
-    return { ...k, newStart: addDays(k.start, shift), newEnd: addDays(k.end, shift), reason, shift, selected: true };
+    return { ...k, newStart: addDays(k.start, shift), newEnd: addDays(k.end, shift), reason, shift, selected: false };
   }
 
   // Stay driver: flights/transfers on the boundaries re-anchor, day-anchored
@@ -111,7 +112,7 @@
       if (k.start === edited.s0) {
         dep = mkDep(k, d, 'Check-in follows the new flight date, nights preserved');
       } else if (k.end === edited.s0) {
-        dep = { ...k, newStart: k.start, newEnd: addDays(k.end, d), reason: `Check-out follows the new flight date (${d > 0 ? 'extra' : 'fewer'} night${Math.abs(d) === 1 ? '' : 's'} in ${shortName(k.name)})`, shift: d, selected: true };
+        dep = { ...k, newStart: k.start, newEnd: addDays(k.end, d), reason: `Check-out follows the new flight date (${d > 0 ? 'extra' : 'fewer'} night${Math.abs(d) === 1 ? '' : 's'} in ${shortName(k.name)})`, shift: d, selected: false };
       }
       if (dep) {
         seen.add(k.chip); out.push(dep);
@@ -180,7 +181,7 @@
 
     const row = (d, i) => `
       <label class="dc-row" data-i="${i}">
-        <input type="checkbox" class="dc-cb" checked>
+        <input type="checkbox" class="dc-cb">
         <span class="dc-row-ic">${icon(d.type)}</span>
         <span class="dc-row-main">
           <span class="dc-row-name">${d.name}</span>
@@ -201,8 +202,8 @@
       <div class="dc-card" role="dialog" aria-modal="true" aria-label="Update dependent dates">
         <div class="dc-hd">
           <div>
-            <div class="dc-title">Update dependent dates?</div>
-            <div class="dc-sub">Nothing moves until you confirm. Unticked collections keep their current dates.</div>
+            <div class="dc-title">Move dependent collections too?</div>
+            <div class="dc-sub">These collections are scheduled around ${edited.shortName}. Tick the ones that should move with it; unticked collections keep their current dates. Nothing changes until you confirm.</div>
           </div>
           <button class="dc-x" title="Discard the date change entirely" aria-label="Close">${icon('x')}</button>
         </div>
@@ -219,33 +220,39 @@
         <div class="dc-trip-banner" id="dc-trip-banner"></div>
         <div class="dc-body">
           <div class="dc-caps">
-            <span>Affected collections (${deps.length})</span>
-            <button class="dc-selall" id="dc-selall">Select none</button>
+            <span>Affected collections (${deps.length}) · <span id="dc-selcount">0 selected</span></span>
+            <span class="dc-caps-actions">
+              <button class="dc-selall" id="dc-selall">Select all</button>
+              <button class="dc-selall" id="dc-clear">Clear</button>
+            </span>
           </div>
           <div class="dc-rows">${deps.map(row).join('')}</div>
           ${unaffectedLine ? `<div class="dc-unaffected">${unaffectedLine}</div>` : ''}
         </div>
         <div class="dc-foot">
-          <button class="af-btn af-btn-ghost" data-keep title="Move only ${edited.shortName}; every dependent stays on its current dates">Keep other dates</button>
+          <button class="af-btn af-btn-ghost" data-cancel title="Discard the date change entirely; nothing moves">Cancel</button>
           <div class="dc-spacer"></div>
-          <button class="af-btn af-btn-primary" data-shift>Shift selected (${deps.length})</button>
+          <button class="af-btn af-btn-primary" data-apply></button>
         </div>
       </div>`;
     document.body.appendChild(modal);
     requestAnimationFrame(() => modal.classList.add('dc-open'));
 
-    const shiftBtn = modal.querySelector('[data-shift]');
+    const applyBtn = modal.querySelector('[data-apply]');
     const selAllBtn = modal.querySelector('#dc-selall');
+    const clearBtn = modal.querySelector('#dc-clear');
+    const selCount = modal.querySelector('#dc-selcount');
     const banner = modal.querySelector('#dc-trip-banner');
     const cbs = [...modal.querySelectorAll('.dc-cb')];
 
     const refresh = () => {
       deps.forEach((d, i) => { d.selected = cbs[i].checked; });
       const n = deps.filter((d) => d.selected).length;
-      shiftBtn.textContent = `Shift selected (${n})`;
-      shiftBtn.disabled = n === 0;
-      shiftBtn.title = n === 0 ? 'Nothing selected. Use "Keep other dates" to move only the collection you edited.' : '';
-      selAllBtn.textContent = n === deps.length ? 'Select none' : 'Select all';
+      selCount.textContent = `${n} selected`;
+      applyBtn.textContent = n === 0 ? `Move only ${edited.shortName}` : `Move ${edited.shortName} + shift ${n}`;
+      applyBtn.title = n === 0
+        ? `Moves only ${edited.shortName}; all ${deps.length} listed collections keep their current dates`
+        : `Moves ${edited.shortName} and shifts the ${n} ticked collection${n === 1 ? '' : 's'}`;
       modal.querySelectorAll('.dc-row').forEach((rowEl, i) => {
         const d = deps[i];
         rowEl.classList.toggle('dc-unticked', !d.selected);
@@ -263,11 +270,8 @@
       }
     };
     cbs.forEach((cb) => cb.addEventListener('change', refresh));
-    selAllBtn.addEventListener('click', () => {
-      const allOn = deps.every((d) => d.selected);
-      cbs.forEach((cb) => { cb.checked = !allOn; });
-      refresh();
-    });
+    selAllBtn.addEventListener('click', () => { cbs.forEach((cb) => { cb.checked = true; }); refresh(); });
+    clearBtn.addEventListener('click', () => { cbs.forEach((cb) => { cb.checked = false; }); refresh(); });
     refresh();
 
     const destroy = () => { modal.classList.remove('dc-open'); setTimeout(() => modal.remove(), 180); document.removeEventListener('keydown', onKey); };
@@ -276,14 +280,8 @@
     modal.addEventListener('click', (e) => { if (e.target === modal) { destroy(); AF().toast && AF().toast('No changes applied'); } });
     modal.querySelector('.dc-x').addEventListener('click', () => { destroy(); AF().toast && AF().toast('No changes applied'); });
 
-    modal.querySelector('[data-keep]').addEventListener('click', () => {
-      applyToSelf();
-      AF().computeTrip && AF().computeTrip();
-      AF().toast && AF().toast(`Moved ${edited.shortName} · kept ${plural(deps.length, 'dependent')} on current dates`);
-      destroy();
-      if (onDone) onDone('keep');
-    });
-    shiftBtn.addEventListener('click', () => {
+    modal.querySelector('[data-cancel]').addEventListener('click', () => { destroy(); AF().toast && AF().toast('No changes applied'); });
+    applyBtn.addEventListener('click', () => {
       applyToSelf();
       const moved = deps.filter((d) => d.selected);
       moved.forEach((d) => {
@@ -293,9 +291,11 @@
       });
       AF().computeTrip && AF().computeTrip();
       const kept = deps.length - moved.length;
-      AF().toast && AF().toast(`Moved ${edited.shortName} · shifted ${plural(moved.length, 'collection')}${kept ? ` · ${kept} kept` : ''}`);
+      AF().toast && AF().toast(moved.length
+        ? `Moved ${edited.shortName} · shifted ${plural(moved.length, 'collection')}${kept ? ` · ${kept} kept` : ''}`
+        : `Moved ${edited.shortName} · all ${plural(kept, 'dependent')} kept their dates`);
       destroy();
-      if (onDone) onDone('shift');
+      if (onDone) onDone(moved.length ? 'shift' : 'keep');
     });
   }
 
