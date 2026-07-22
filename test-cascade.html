@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Date Cascade Test — Conductor (CON-1626)</title>
+  <link rel="stylesheet" href="app-L9EWFWjM.css">
+  <link rel="stylesheet" href="add-flow.css">
+  <link rel="stylesheet" href="date-cascade.css">
+  <style>
+    body { background: var(--color-maestro-bg); color: var(--color-maestro-text-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 40px; }
+    .test-wrapper { max-width: 960px; margin: 0 auto; }
+    button.test-trigger { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; background: var(--color-maestro-accent); color: var(--color-maestro-on-accent); border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; margin: 10px 5px; }
+    button.test-trigger:hover { filter: brightness(1.08); }
+    .test-note { font-size: 13px; color: var(--color-maestro-text-tertiary); line-height: 1.6; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <div class="test-wrapper">
+    <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 12px;">Cross-Collection Date Cascade — CON-1626</h1>
+    <p class="test-note">
+      Demo trip: Bangkok (May 24 – 27) then Chiang Mai (May 27 – 29), with an arrival flight + transfer on May 24,
+      an inter-city flight + transfer on May 27, and day-anchored dining / experiences in between.
+    </p>
+    <p class="test-note" style="margin-bottom: 28px;">
+      Any collection date edit runs the same dependency scan; the prompt appears only when it affects other
+      collections. Every affected collection is listed with its current date, the proposed date, and the
+      dependency reason. Nothing moves silently.
+    </p>
+
+    <button class="test-trigger" onclick="DateCascade.openDemo('extend')">
+      Scenario 1 — Extend Bangkok stay (+2 nights at check-out)
+    </button>
+    <button class="test-trigger" onclick="DateCascade.openDemo('shift')">
+      Scenario 2 — Move whole stay (check-in +1, check-out +1)
+    </button>
+    <button class="test-trigger" onclick="DateCascade.openDemo('flight')">
+      Scenario 3 — Move the BKK → CNX flight (+1 day, re-anchors both stays)
+    </button>
+    <button class="test-trigger" onclick="DateCascade.openDemo('none')">
+      Scenario 4 — Edit a dining collection (no dependents, no prompt)
+    </button>
+
+    <p class="test-note" style="margin-top: 28px;">
+      Things to try inside the modal: untick a row (its current date stays, the proposal mutes, and a conflict
+      warning appears when the kept date now sits inside the edited collection's new span) · watch the trip range
+      banner update live · "Keep other dates" moves only the edited collection · X or Escape discards the edit
+      entirely.
+    </p>
+  </div>
+
+  <script src="add-flow.js"></script>
+  <script src="date-cascade.js"></script>
+</body>
+</html>

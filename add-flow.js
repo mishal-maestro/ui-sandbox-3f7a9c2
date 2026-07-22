@@ -469,11 +469,20 @@
     footEl.querySelector('[data-save]').addEventListener('click', () => {
       const s = bodyEl.querySelector('#af-estart').value;
       const e = bodyEl.querySelector('#af-eend').value || s;
-      if (st.dateEl) {
-        st.dateEl.dataset.start = s; st.dateEl.dataset.end = e;
-        st.dateEl.innerHTML = `${S(IC.cal, 'width="11" height="11"')} ${rangeLabel(s, e)}`;
+      const applyToSelf = () => {
+        if (st.dateEl) {
+          st.dateEl.dataset.start = s; st.dateEl.dataset.end = e;
+          st.dateEl.innerHTML = `${S(IC.cal, 'width="11" height="11"')} ${rangeLabel(s, e)}`;
+        }
+        computeTrip();
+      };
+      // CON-1626: cross-component date cascade owns the save when present
+      if (window.DateCascade && st.dateEl) {
+        close();
+        window.DateCascade.onCollectionDateSave({ name: st.collection, type: st.type, dateEl: st.dateEl, newStart: s, newEnd: e, applyToSelf });
+        return;
       }
-      computeTrip();
+      applyToSelf();
       toast(`Moved ${st.collection} to ${rangeLabel(s, e)}`);
       close();
     });
@@ -1141,4 +1150,7 @@
   function init() { build(); enhance(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+
+  // Bridge for sibling overlays (date-cascade.js) — same page, separate file
+  window.AF = { open, close, toast, computeTrip, rangeLabel, toYMD, fromYMD, inferType, S, IC };
 })();

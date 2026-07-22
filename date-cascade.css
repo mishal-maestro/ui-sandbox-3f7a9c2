@@ -1,0 +1,75 @@
+/* ============================================================
+   Cross-component date cascade (CON-1626) — dc- namespace
+   Sits alongside add-flow.css; reuses .af-btn, .af-coll-date,
+   .af-edit-coll and the --color-maestro-* tokens.
+   ============================================================ */
+
+/* ---- centered modal (same archetype as .af-memory-modal) ---- */
+.dc-modal { position: fixed; inset: 0; z-index: 10003; background: rgba(0,0,0,.55); backdrop-filter: blur(1px); display: grid; place-items: center; opacity: 0; pointer-events: none; transition: opacity .18s; }
+.dc-modal.dc-open { opacity: 1; pointer-events: auto; }
+.dc-card { width: 92%; max-width: 640px; background: var(--color-maestro-card); border: 1px solid var(--color-maestro-border); border-radius: 12px; box-shadow: 0 24px 64px rgba(0,0,0,.5); display: flex; flex-direction: column; max-height: 84vh; }
+
+.dc-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 14px 16px 12px; border-bottom: 1px solid var(--color-maestro-border); }
+.dc-title { font-size: 15px; font-weight: 600; color: var(--color-maestro-text-primary); }
+.dc-sub { font-size: 11.5px; color: var(--color-maestro-text-tertiary); margin-top: 2px; line-height: 1.4; }
+.dc-x { width: 28px; height: 28px; flex: 0 0 auto; border-radius: 7px; border: 1px solid var(--color-maestro-border); background: transparent; color: var(--color-maestro-text-secondary); display: grid; place-items: center; cursor: pointer; transition: background .12s; }
+.dc-x:hover { background: var(--color-maestro-surface); }
+.dc-x svg { width: 14px; height: 14px; }
+
+/* ---- "what you edited" summary strip ---- */
+.dc-edit-summary { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--color-maestro-surface); border-bottom: 1px solid var(--color-maestro-border); font-size: 12.5px; flex-wrap: wrap; }
+.dc-es-name { font-weight: 600; color: var(--color-maestro-text-primary); }
+.dc-delta { font-size: 11px; font-weight: 600; color: var(--color-maestro-accent); background: color-mix(in srgb, var(--color-maestro-accent) 12%, transparent); border-radius: 999px; padding: 2px 8px; }
+
+/* ---- trip extension banner ---- */
+.dc-trip-banner { display: none; align-items: center; gap: 8px; margin: 12px 16px 0; padding: 8px 12px; border-radius: 8px; font-size: 12px; color: var(--color-maestro-warning); background: color-mix(in srgb, var(--color-maestro-warning) 9%, transparent); border: 1px solid color-mix(in srgb, var(--color-maestro-warning) 35%, transparent); }
+.dc-trip-banner.dc-on { display: flex; }
+.dc-trip-banner svg { flex: 0 0 auto; }
+.dc-trip-banner s { color: color-mix(in srgb, var(--color-maestro-warning) 60%, transparent); }
+.dc-trip-banner b { font-weight: 600; }
+
+/* ---- affected rows ---- */
+.dc-body { flex: 1 1 auto; overflow-y: auto; padding: 12px 16px 14px; }
+.dc-caps { display: flex; align-items: center; justify-content: space-between; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--color-maestro-text-tertiary); margin-bottom: 8px; }
+.dc-selall { border: none; background: transparent; color: var(--color-maestro-accent); font-size: 11px; font-weight: 600; cursor: pointer; padding: 2px 4px; text-transform: none; letter-spacing: 0; }
+.dc-selall:hover { text-decoration: underline; }
+.dc-rows { display: flex; flex-direction: column; gap: 6px; }
+
+.dc-row { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 10px; border: 1px solid var(--color-maestro-border); background: transparent; cursor: pointer; transition: border-color .12s, background .12s, opacity .12s; }
+.dc-row:hover { border-color: var(--color-maestro-border-hover); background: var(--color-maestro-surface); }
+.dc-cb { appearance: auto; accent-color: var(--color-maestro-accent); width: 15px; height: 15px; flex: 0 0 auto; cursor: pointer; }
+.dc-row-ic { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; background: var(--color-maestro-surface); color: var(--color-maestro-text-tertiary); flex: 0 0 auto; }
+.dc-row-ic svg { width: 14px; height: 14px; }
+.dc-row-main { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.dc-row-name { font-size: 12.5px; font-weight: 600; color: var(--color-maestro-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dc-row-reason { font-size: 11px; color: var(--color-maestro-text-tertiary); line-height: 1.35; }
+.dc-row-warn { display: none; align-items: center; gap: 4px; font-size: 10.5px; color: var(--color-maestro-warning); margin-top: 2px; }
+.dc-row-warn svg { flex: 0 0 auto; }
+
+.dc-row-dates { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; flex: 0 0 auto; white-space: nowrap; }
+.dc-old { color: var(--color-maestro-text-tertiary); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--color-maestro-text-tertiary) 55%, transparent); }
+.dc-arrow { color: var(--color-maestro-text-tertiary); }
+.dc-new { font-weight: 600; color: var(--color-maestro-text-primary); }
+
+/* unticked = stays put: mute the proposal, plain (non-struck) current date */
+.dc-row.dc-unticked { opacity: .75; }
+.dc-row.dc-unticked .dc-old { text-decoration: none; color: var(--color-maestro-text-secondary); font-weight: 600; }
+.dc-row.dc-unticked .dc-arrow, .dc-row.dc-unticked .dc-new { opacity: .35; font-weight: 400; }
+.dc-row.dc-conflict { border-color: color-mix(in srgb, var(--color-maestro-warning) 45%, transparent); opacity: 1; }
+.dc-row.dc-conflict .dc-row-warn { display: inline-flex; }
+
+.dc-unaffected { margin-top: 10px; font-size: 11px; color: var(--color-maestro-text-tertiary); line-height: 1.45; }
+
+.dc-foot { border-top: 1px solid var(--color-maestro-border); padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+.dc-spacer { flex: 1; }
+
+/* ---- seeded demo collections (flights / transfers) ---- */
+.dc-seed-card { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 11px 14px; border-radius: 12px; border: 1px solid var(--color-maestro-border); background: var(--color-maestro-card); }
+.dc-seed-ic { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--color-maestro-surface); color: var(--color-maestro-text-tertiary); flex: 0 0 auto; }
+.dc-seed-ic svg { width: 15px; height: 15px; }
+.dc-seed-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.dc-seed-title { font-size: 13px; font-weight: 600; color: var(--color-maestro-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-seed-sub { font-size: 11px; color: var(--color-maestro-text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dc-seed-count { font-size: 12px; color: var(--color-maestro-text-muted); margin-left: auto; flex: 0 0 auto; }
+.dc-seed-card .af-coll-date { flex: 0 0 auto; }
+.dc-seed-card .af-edit-coll { flex: 0 0 auto; }
