@@ -657,15 +657,19 @@
           secondSec.appendChild(seedCard({ name: 'Chiang Mai Airport Transfers', type: 'transfers', city: 'Chiang Mai', count: 1, sub: 'Airport to hotel · private car · entered manually', start: second.start, manualEntry: true }));
         }
       }
-      // 4. Calendar view link (entry point 3 lives on calendar.html).
+      // 4. Prod-style view toggle (the calendar is a VIEW of this trip;
+      //    entry point 3 lives on calendar.html).
       const firstSecEl = first.chip.closest('section');
-      if (firstSecEl && firstSecEl.parentElement && !document.getElementById('dc-cal-link')) {
-        const link = document.createElement('a');
-        link.id = 'dc-cal-link';
-        link.className = 'dc-cal-link';
-        link.href = 'calendar.html';
-        link.innerHTML = `${icon('cal', 'width="13" height="13"')} Calendar view · drag a stay to move it`;
-        firstSecEl.parentElement.insertBefore(link, firstSecEl);
+      if (firstSecEl && firstSecEl.parentElement && !document.getElementById('dc-view-toggle')) {
+        const seg = document.createElement('div');
+        seg.id = 'dc-view-toggle';
+        seg.className = 'dcm-seg dc-view-toggle';
+        seg.innerHTML = `
+          <button type="button" class="dcm-seg-btn dcm-seg-active"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></svg>Itinerary</button>
+          <a class="dcm-seg-btn" href="calendar.html">${icon('cal', 'width="12" height="12"')}Calendar</a>
+          <button type="button" class="dcm-seg-btn" data-dc-map><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>Map</button>`;
+        seg.querySelector('[data-dc-map]').addEventListener('click', () => { AF().toast && AF().toast('Not part of this prototype'); });
+        firstSecEl.parentElement.insertBefore(seg, firstSecEl);
       }
     }
     AF().computeTrip && AF().computeTrip();
