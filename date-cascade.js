@@ -678,7 +678,7 @@
     return { name, type, chip, start, end: end || start, city: city || cityOf(name), count: count || '', manualEntry: !!manualEntry };
   }
   function demoRegistry() {
-    return [
+    const list = [
       demoEntry('Bangkok, Thailand Hotels', 'hotels', '2024-05-24', '2024-05-27', 'Bangkok', 4),
       demoEntry('Bangkok Arrival Flights', 'flights', '2024-05-24', '', 'Bangkok', 3),
       demoEntry('Bangkok Airport Transfers', 'transfers', '2024-05-24', '', 'Bangkok', 2),
@@ -690,6 +690,10 @@
       demoEntry('Chiang Mai, Thailand Hotels', 'hotels', '2024-05-27', '2024-05-29', 'Chiang Mai', 4),
       demoEntry('Chiang Mai Dining', 'dining', '2024-05-27', '', 'Chiang Mai', 2),
     ];
+    // dining renders as timed chips on the calendar, like prod
+    const times = ['7:30 PM', '8:00 PM', '7:00 PM'];
+    list.filter((k) => k.type === 'dining').forEach((k, i) => { k.time = times[i % times.length]; });
+    return list;
   }
 
   /* ---- isolated harness support (test-cascade.html) ---- */

@@ -8,20 +8,58 @@
   <link rel="stylesheet" href="add-flow.css">
   <link rel="stylesheet" href="date-cascade.css">
   <style>
-    body { background: var(--color-maestro-bg); color: var(--color-maestro-text-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 28px 32px; }
+    body { background: var(--color-maestro-bg); color: var(--color-maestro-text-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 0; }
   </style>
 </head>
 <body>
-  <div class="cal-wrap">
-    <div class="cal-top">
-      <a class="dc-cal-link" href="trip-detail.html" style="margin:0">← Itinerary view</a>
-      <div class="cal-titles">
-        <h1 class="cal-title">Thailand Food, Culture &amp; Beach Adventure 2024</h1>
-        <div class="cal-range" id="cal-range"></div>
+  <div class="dcm-page">
+    <div class="dcm-tripbar">
+      <a class="dcm-back" href="trip-detail.html">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        Trips
+      </a>
+      <span class="dcm-vdiv"></span>
+      <h1 class="dcm-trip-title">Thailand Food, Culture &amp; Beach Adventure 2024</h1>
+      <span class="dcm-spacer"></span>
+      <div class="dcm-seg">
+        <a class="dcm-seg-btn" href="trip-detail.html">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h.01"/><path d="M3 12h.01"/><path d="M3 19h.01"/><path d="M8 5h13"/><path d="M8 12h13"/><path d="M8 19h13"/></svg>
+          Itinerary
+        </a>
+        <button type="button" class="dcm-seg-btn dcm-seg-active">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+          Calendar
+        </button>
+        <button type="button" class="dcm-seg-btn" data-demo-toast>
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+          Map
+        </button>
       </div>
-      <div class="cal-hint">Drag a hotel stay or flight to another day. Other items are never moved silently: you get the same prompt as everywhere else.</div>
     </div>
-    <div class="cal-grid" id="cal-grid"></div>
+
+    <div class="dcm-toolbar">
+      <button type="button" class="dcm-tool-ic" data-demo-toast aria-label="Previous month"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+      <button type="button" class="dcm-tool-ic" data-demo-toast aria-label="Next month"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+      <button type="button" class="dcm-tool-btn" data-demo-toast>Today</button>
+      <span class="dcm-month-title">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+        <span id="dcm-title"></span>
+      </span>
+      <span class="dcm-hint">Drag any bar or chip to another day. Moves that affect other items prompt first; nothing moves silently.</span>
+      <span class="dcm-spacer"></span>
+      <button type="button" class="dcm-tool-btn" data-demo-toast>Share</button>
+      <button type="button" class="dcm-tool-new" data-demo-toast>+ New</button>
+      <div class="dcm-seg">
+        <button type="button" class="dcm-seg-btn" data-demo-toast>Week</button>
+        <button type="button" class="dcm-seg-btn dcm-seg-active">Month</button>
+        <button type="button" class="dcm-seg-btn" data-demo-toast>Schedule</button>
+      </div>
+    </div>
+
+    <div class="dcm-dow">
+      <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+    </div>
+    <div id="dcm-month" class="dcm-month"></div>
   </div>
 
   <script src="add-flow.js"></script>
