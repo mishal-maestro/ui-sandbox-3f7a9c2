@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trip Calendar — Maestro Conductor (CON-1626)</title>
+  <link rel="stylesheet" href="app-L9EWFWjM.css">
+  <link rel="stylesheet" href="add-flow.css">
+  <link rel="stylesheet" href="date-cascade.css">
+  <style>
+    body { background: var(--color-maestro-bg); color: var(--color-maestro-text-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 28px 32px; }
+  </style>
+</head>
+<body>
+  <div class="cal-wrap">
+    <div class="cal-top">
+      <a class="dc-cal-link" href="trip-detail.html" style="margin:0">← Itinerary view</a>
+      <div class="cal-titles">
+        <h1 class="cal-title">Thailand Food, Culture &amp; Beach Adventure 2024</h1>
+        <div class="cal-range" id="cal-range"></div>
+      </div>
+      <div class="cal-hint">Drag a hotel stay or flight to another day. Other items are never moved silently: you get the same prompt as everywhere else.</div>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <script src="add-flow.js"></script>
+  <script src="date-cascade.js"></script>
+  <script src="dc-calendar.js"></script>
+</body>
+</html>

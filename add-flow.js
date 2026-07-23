@@ -273,6 +273,11 @@
   }
 
   function open(opts) {
+    // CON-1626: the Edit Collection surface is the prod-style centered dialog
+    if (opts.mode === 'editCollection' && window.DateCascade && window.DateCascade.openEditModal) {
+      window.DateCascade.openEditModal(opts);
+      return;
+    }
     Object.assign(st, { mode: opts.mode, type: opts.type || null, name: '', collection: opts.collection || '', dest: opts.dest || '', day: opts.day || '', dayDate: opts.dayDate || '', start: opts.start || '', end: opts.end || '', dateEl: opts.dateEl || null, genTypes: new Set(), onAdded: opts.onAdded || null, adults: 2, children: 0, rooms: 1 });
     if (opts.mode === 'newCollection') renderTypeStep();
     else if (opts.mode === 'editCollection') renderEditCollection();

@@ -22,10 +22,17 @@
       Demo trip: Bangkok (May 24 – 27) then Chiang Mai (May 27 – 29), with an arrival flight + transfer on May 24,
       an inter-city flight + transfer on May 27, and day-anchored dining / experiences in between.
     </p>
+    <p class="test-note" style="margin-bottom: 8px;">
+      Any collection date edit runs the same dependency scan; the "Move other items too?" prompt appears only
+      when other items are scheduled around the edited one. Every affected item is listed with its current date,
+      the proposed date, and the dependency reason. Nothing moves silently, and moved items re-check
+      availability and rates afterwards (manual entries excluded).
+    </p>
     <p class="test-note" style="margin-bottom: 28px;">
-      Any collection date edit runs the same dependency scan; the prompt appears only when it affects other
-      collections. Every affected collection is listed with its current date, the proposed date, and the
-      dependency reason. Nothing moves silently.
+      Entry points on the full prototype: inline date pills on every collection header and the Edit Collection
+      modal (<a href="trip-detail.html" style="color: var(--color-maestro-accent)">itinerary view</a>), plus
+      dragging a stay or flight on the <a href="calendar.html" style="color: var(--color-maestro-accent)">calendar
+      view</a>.
     </p>
 
     <button class="test-trigger" onclick="DateCascade.openDemo('extend')">
