@@ -100,6 +100,27 @@
 .dc-pill svg { color: var(--color-maestro-text-tertiary); flex: 0 0 auto; }
 .dc-pill-input { font-size: 11.5px; padding: 3px 6px; border-radius: 8px; border: 1px solid var(--color-maestro-accent); background: var(--color-maestro-surface); color: var(--color-maestro-text-primary); color-scheme: dark; width: 126px; font-family: inherit; }
 
+/* ---- prod-style date picker popover ---- */
+.dc-dp { position: fixed; z-index: 10008; width: 280px; background: var(--color-maestro-card); border: 1px solid var(--color-maestro-border); border-radius: 10px; box-shadow: 0 12px 36px rgba(0,0,0,.45); padding: 12px; opacity: 0; transform: translateY(-4px); transition: opacity .12s, transform .12s; }
+.dc-dp.dc-on { opacity: 1; transform: translateY(0); }
+.dc-dp-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; height: 28px; }
+.dc-dp-nav { padding: 4px; border: none; background: transparent; border-radius: 6px; color: var(--color-maestro-text-secondary); cursor: pointer; display: grid; place-items: center; }
+.dc-dp-nav:hover { background: var(--color-maestro-surface); }
+.dc-dp-label { font-size: 12px; font-weight: 600; color: var(--color-maestro-text-primary); }
+.dc-dp-dow { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
+.dc-dp-dow div { text-align: center; font-size: 10px; font-weight: 500; color: var(--color-maestro-text-tertiary); padding: 4px 0; }
+.dc-dp-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.dc-dp-day { width: 32px; height: 32px; margin: 0 auto; border: none; border-radius: 7px; background: transparent; color: var(--color-maestro-text-primary); font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: inherit; }
+.dc-dp-day:hover { background: var(--color-maestro-surface); }
+.dc-dp-out { color: color-mix(in srgb, var(--color-maestro-text-tertiary) 50%, transparent); }
+.dc-dp-sel { background: var(--color-maestro-text-primary); color: var(--color-maestro-on-primary, var(--color-maestro-bg)); font-weight: 600; }
+.dc-dp-sel:hover { background: var(--color-maestro-text-primary); }
+.dc-dp-foot { margin-top: 8px; padding-top: 8px; border-top: 1px solid color-mix(in srgb, var(--color-maestro-border) 60%, transparent); display: flex; justify-content: center; gap: 14px; }
+.dc-dp-link { border: none; background: transparent; font-size: 11px; color: var(--color-maestro-accent); cursor: pointer; font-family: inherit; }
+.dc-dp-link:hover { text-decoration: underline; }
+.dc-dp-muted { color: var(--color-maestro-text-tertiary); }
+.dc-dp-muted:hover { color: var(--color-maestro-text-primary); }
+
 /* ---- Edit Collection modal (prod parity) ---- */
 .dc-edit-card { max-width: 400px; }
 .dc-x-round { border-radius: 50%; }
@@ -109,7 +130,9 @@
 .dc-e-input { width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--color-maestro-border); background: var(--color-maestro-surface); color: var(--color-maestro-text-primary); font-size: 13.5px; font-family: inherit; }
 .dc-e-input:focus { outline: none; border-color: var(--color-maestro-accent); }
 .dc-e-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.dc-e-datewrap { display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 10px; border: 1px solid var(--color-maestro-border); background: transparent; }
+.dc-e-datewrap { display: inline-flex; align-items: center; gap: 7px; padding: 7px 11px; border-radius: 10px; border: 1px solid var(--color-maestro-border); background: transparent; cursor: pointer; font-family: inherit; transition: border-color .12s; }
+.dc-e-datewrap:hover { border-color: var(--color-maestro-accent); }
+.dc-e-dateval { font-size: 12.5px; color: var(--color-maestro-text-primary); white-space: nowrap; }
 .dc-e-datewrap svg { color: var(--color-maestro-text-tertiary); flex: 0 0 auto; }
 .dc-e-date { border: none; background: transparent; color: var(--color-maestro-text-primary); font-size: 12.5px; font-family: inherit; color-scheme: dark; width: 100%; padding: 0; }
 .dc-e-date:focus { outline: none; }

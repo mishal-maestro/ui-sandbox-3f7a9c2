@@ -379,33 +379,17 @@
       const d = deps[i];
       rowEl.querySelector('.dc-new').addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation();
-        if (rowEl.querySelector('.dc-new-input')) return;
-        const btn = rowEl.querySelector('.dc-new');
-        const inp = document.createElement('input');
-        inp.type = 'date'; inp.className = 'dc-new-input'; inp.value = d.newStart;
-        btn.style.display = 'none';
-        btn.insertAdjacentElement('afterend', inp);
-        inp.focus();
-        let finished = false;
-        const done = (commit) => {
-          if (finished) return; finished = true;
-          if (commit && inp.value) {
+        openDatePicker({
+          anchor: rowEl.querySelector('.dc-new'),
+          value: d.newStart,
+          onPick: (v) => {
             const dur = diffDays(d.start, d.end);
-            d.newStart = inp.value; d.newEnd = addDays(inp.value, dur);
+            d.newStart = v; d.newEnd = addDays(v, dur);
             d.manual = true;
             cbs[i].checked = true; // you set a date, so this row is moving
-          }
-          inp.remove(); btn.style.display = '';
-          refresh();
-        };
-        inp.addEventListener('change', () => done(true));
-        inp.addEventListener('blur', () => done(false));
-        inp.addEventListener('keydown', (ev) => {
-          ev.stopPropagation();
-          if (ev.key === 'Escape') done(false);
-          if (ev.key === 'Enter') done(true);
+            refresh();
+          },
         });
-        inp.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); });
       });
       rowEl.querySelector('.dc-reset').addEventListener('click', (e) => {
         e.preventDefault(); e.stopPropagation();
@@ -485,6 +469,66 @@
     openCascadeModal({ edited, deps, registry, applyToSelf: apply, baseTrip, onDone });
   }
 
+  /* ---- prod-style date picker popover (DatePicker parity, from
+     Mishal's saved prod DOM: 280px card, month nav, Su-first grid,
+     adjacent-month days dimmed, selected day filled, Today / Clear) ---- */
+  let dpRoot = null, dpCleanup = null;
+  function closeDatePicker() {
+    if (dpCleanup) { dpCleanup(); dpCleanup = null; }
+    if (dpRoot) { dpRoot.remove(); dpRoot = null; }
+  }
+  function openDatePicker({ anchor, value, onPick }) {
+    closeDatePicker();
+    const t0 = new Date();
+    let view = (value || `${t0.getFullYear()}-${String(t0.getMonth() + 1).padStart(2, '0')}-01`).slice(0, 7);
+    dpRoot = document.createElement('div');
+    dpRoot.id = 'dc-dp-root';
+    dpRoot.className = 'dc-dp';
+    document.body.appendChild(dpRoot);
+
+    const label = (ym) => new Date(ym + '-01T00:00:00').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const shiftMonth = (ym, n) => { const d = new Date(+ym.slice(0, 4), +ym.slice(5, 7) - 1 + n, 1); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; };
+    const position = () => {
+      const r = anchor.getBoundingClientRect();
+      const w = 280, h = dpRoot.offsetHeight || 330;
+      const left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
+      let top = r.bottom + 6;
+      if (top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 6);
+      dpRoot.style.left = `${left}px`;
+      dpRoot.style.top = `${top}px`;
+    };
+    const renderDP = () => {
+      const first = view + '-01';
+      const gridStart = addDays(first, -(new Date(first + 'T00:00:00').getDay()));
+      let days = '';
+      for (let i = 0; i < 42; i += 1) {
+        const d = addDays(gridStart, i);
+        days += `<button type="button" class="dc-dp-day${d.slice(0, 7) === view ? '' : ' dc-dp-out'}${d === value ? ' dc-dp-sel' : ''}" data-d="${d}">${parseInt(d.slice(8), 10)}</button>`;
+      }
+      dpRoot.innerHTML = `
+        <div class="dc-dp-hd">
+          <button type="button" class="dc-dp-nav" data-nav="-1" aria-label="Previous month">${icon('chevL', 'width="14" height="14"')}</button>
+          <span class="dc-dp-label">${label(view)}</span>
+          <button type="button" class="dc-dp-nav" data-nav="1" aria-label="Next month">${icon('chevR', 'width="14" height="14"')}</button>
+        </div>
+        <div class="dc-dp-dow"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></div>
+        <div class="dc-dp-grid">${days}</div>
+        <div class="dc-dp-foot"><button type="button" class="dc-dp-link" data-today>Today</button><button type="button" class="dc-dp-link dc-dp-muted" data-clear>Clear</button></div>`;
+      dpRoot.querySelectorAll('[data-nav]').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); view = shiftMonth(view, parseInt(b.dataset.nav, 10)); renderDP(); }));
+      dpRoot.querySelectorAll('.dc-dp-day').forEach((b) => b.addEventListener('click', (e) => { e.stopPropagation(); const v = b.dataset.d; closeDatePicker(); onPick(v); }));
+      dpRoot.querySelector('[data-today]').addEventListener('click', (e) => { e.stopPropagation(); const t = new Date(); const v = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; closeDatePicker(); onPick(v); });
+      dpRoot.querySelector('[data-clear]').addEventListener('click', (e) => { e.stopPropagation(); closeDatePicker(); });
+      position();
+    };
+    const onDown = (e) => { if (dpRoot && !dpRoot.contains(e.target) && !anchor.contains(e.target)) closeDatePicker(); };
+    const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); closeDatePicker(); } };
+    setTimeout(() => document.addEventListener('mousedown', onDown, true), 0);
+    document.addEventListener('keydown', onKey, true);
+    dpCleanup = () => { document.removeEventListener('mousedown', onDown, true); document.removeEventListener('keydown', onKey, true); };
+    renderDP();
+    requestAnimationFrame(() => dpRoot && dpRoot.classList.add('dc-on'));
+  }
+
   /* ---- entry point 1: inline date pills on collection headers ---- */
   function renderChip(chip) {
     const s = chip.dataset.start, e = chip.dataset.end || s;
@@ -501,36 +545,20 @@
   }
 
   function beginPillEdit(chip, which) {
-    if (chip.querySelector('.dc-pill-input')) return;
     const pill = chip.querySelector(`.dc-pill[data-which="${which}"]`);
-    const inp = document.createElement('input');
-    inp.type = 'date'; inp.className = 'dc-pill-input';
-    inp.value = which === 'start' ? chip.dataset.start : (chip.dataset.end || chip.dataset.start);
-    pill.style.display = 'none';
-    pill.insertAdjacentElement('afterend', inp);
-    inp.focus();
-    let finished = false;
-    const done = (commit) => {
-      if (finished) return; finished = true;
-      const v = inp.value;
-      inp.remove(); pill.style.display = '';
-      if (!commit || !v) return;
-      const s0 = chip.dataset.start, e0 = chip.dataset.end || s0;
-      let ns = s0, ne = e0;
-      if (which === 'start') { ns = v; if (ne < ns) ne = ns; }
-      else { ne = v; if (ns > ne) ns = ne; }
-      if (ns === s0 && ne === e0) return;
-      // prod parity: a single pill change fires the flow immediately
-      promptMove({ entry: chipEntry(chip), newStart: ns, newEnd: ne, registry: scan() });
-    };
-    inp.addEventListener('change', () => done(true));
-    inp.addEventListener('blur', () => done(false));
-    inp.addEventListener('keydown', (ev) => {
-      ev.stopPropagation();
-      if (ev.key === 'Escape') done(false);
-      if (ev.key === 'Enter') done(true);
+    openDatePicker({
+      anchor: pill,
+      value: which === 'start' ? chip.dataset.start : (chip.dataset.end || chip.dataset.start),
+      onPick: (v) => {
+        const s0 = chip.dataset.start, e0 = chip.dataset.end || s0;
+        let ns = s0, ne = e0;
+        if (which === 'start') { ns = v; if (ne < ns) ne = ns; }
+        else { ne = v; if (ns > ne) ns = ne; }
+        if (ns === s0 && ne === e0) return;
+        // prod parity: a single pill change fires the flow immediately
+        promptMove({ entry: chipEntry(chip), newStart: ns, newEnd: ne, registry: scan() });
+      },
     });
-    inp.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); });
   }
 
   /* ---- entry point 2: Edit Collection modal (prod parity) ---- */
@@ -556,8 +584,8 @@
           <input class="dc-e-input" id="dc-en" maxlength="120" value="${(collection || '').replace(/"/g, '&quot;')}">
           <label class="dc-e-caps">Dates</label>
           <div class="dc-e-dates">
-            <span class="dc-e-datewrap">${icon('cal', 'width="12" height="12"')}<input type="date" class="dc-e-date" id="dc-es" value="${start || ''}"></span>
-            <span class="dc-e-datewrap">${icon('cal', 'width="12" height="12"')}<input type="date" class="dc-e-date" id="dc-ee" value="${end || start || ''}"></span>
+            <button type="button" class="dc-e-datewrap" id="dc-es" data-ymd="${start || ''}">${icon('cal', 'width="12" height="12"')}<span class="dc-e-dateval">${start ? AF().fromYMD(start) : 'Pick a date'}</span></button>
+            <button type="button" class="dc-e-datewrap" id="dc-ee" data-ymd="${end || start || ''}">${icon('cal', 'width="12" height="12"')}<span class="dc-e-dateval">${(end || start) ? AF().fromYMD(end || start) : 'Pick a date'}</span></button>
           </div>
           <p class="dc-e-help">Changing the date re-prices this collection and may extend the trip.</p>
           <div class="dc-ep-grid">${stepper('Adults', 1)}${stepper('Children', 0)}${stepper('Infants', 0)}</div>
@@ -571,7 +599,20 @@
     requestAnimationFrame(() => modal.classList.add('dc-open'));
 
     const sI = modal.querySelector('#dc-es'), eI = modal.querySelector('#dc-ee'), nI = modal.querySelector('#dc-en');
-    sI.addEventListener('change', () => { if (eI.value && eI.value < sI.value) eI.value = sI.value; });
+    const setDateBtn = (btn, v) => { btn.dataset.ymd = v; btn.querySelector('.dc-e-dateval').textContent = AF().fromYMD(v); };
+    const wireDateBtn = (btn, isStart) => btn.addEventListener('click', () => {
+      openDatePicker({
+        anchor: btn,
+        value: btn.dataset.ymd,
+        onPick: (v) => {
+          setDateBtn(btn, v);
+          if (isStart && eI.dataset.ymd && eI.dataset.ymd < v) setDateBtn(eI, v);
+          if (!isStart && sI.dataset.ymd && sI.dataset.ymd > v) setDateBtn(sI, v);
+        },
+      });
+    });
+    wireDateBtn(sI, true);
+    wireDateBtn(eI, false);
     modal.querySelectorAll('.dc-ep-btn').forEach((b) => b.addEventListener('click', () => {
       const val = b.parentElement.querySelector('.dc-ep-val');
       let n = parseInt(val.textContent, 10) + (b.textContent === '+' ? 1 : -1);
@@ -596,7 +637,7 @@
         const seedTitle = dateEl.closest('.dc-seed-card') && dateEl.closest('.dc-seed-card').querySelector('.dc-seed-title');
         if (seedTitle) seedTitle.textContent = newName;
       }
-      const ns = sI.value, ne = eI.value || sI.value;
+      const ns = sI.dataset.ymd, ne = eI.dataset.ymd || sI.dataset.ymd;
       destroy();
       // prod parity: the modal batches, dates apply on Save
       promptMove({ entry: chipEntry(dateEl), newStart: ns, newEnd: ne, registry: scan() });
