@@ -561,6 +561,26 @@ body.member .member-banner { display: flex; }
   font-size: 11px; font-weight: 700; display: grid; place-items: center;
 }
 
+/* start-here cue on the one button a cold visitor needs to find */
+.cta-pulse { position: relative; }
+.cta-pulse::after {
+  content: ""; position: absolute; inset: -4px; border-radius: var(--r-lg);
+  border: 2px solid var(--brand); opacity: 0; pointer-events: none;
+  animation: cta 2.4s ease-out infinite;
+}
+@keyframes cta {
+  0%   { opacity: .85; transform: scale(1); }
+  70%  { opacity: 0;   transform: scale(1.14); }
+  100% { opacity: 0;   transform: scale(1.14); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta-pulse::after { animation: none; opacity: .6; }
+}
+.start-here {
+  display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px;
+  font-size: 11px; font-weight: 700; letter-spacing: .12em; color: var(--brand);
+}
+
 /* highlight pulse when something new lands */
 @keyframes landed {
   0%   { box-shadow: 0 0 0 0 rgba(255,94,50,.55); }

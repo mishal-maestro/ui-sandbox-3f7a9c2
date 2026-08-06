@@ -326,8 +326,9 @@
             The member has an 11-night sailing booked. There is no component type that can hold it,
             so it lives in a Notion note and the trip page shows twelve blank days.
           </div>
-          <div class="add-row ta-only" style="padding-top:12px">
-            <button class="btn btn-primary" data-act="open">${svg(IC.plus, 15)} Add to itinerary</button>
+          <div class="add-row ta-only" style="padding-top:14px;flex-direction:column;gap:2px">
+            <span class="start-here">${svg(IC.chev, 12)} START HERE</span>
+            <button class="btn btn-primary cta-pulse" data-act="open">${svg(IC.plus, 15)} Add to itinerary</button>
           </div>
         </section>`;
     } else {
