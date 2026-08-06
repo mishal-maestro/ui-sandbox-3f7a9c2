@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-day segment: cruise as the stress case | Conductor prototype</title>
+<meta name="description" content="Conductor prototype for CON-1688: one multi-day segment container covering DMC packages, cruises, multi-day tours and multi-day rail.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Commissioner:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="multiday-segment.css">
+</head>
+<body>
+
+<h1 class="sr-only">Conductor prototype: one multi-day segment container, with an 11-night cruise as the stress case</h1>
+
+<div class="member-banner">
+  <span><strong>Member preview.</strong> This is what the traveller sees in the app. Internal fields, vendor names and per-item costs are hidden.</span>
+  <span class="spacer"></span>
+  <button class="btn btn-sm btn-ghost" style="color:#fff" data-act="exit-member">Back to advisor view</button>
+</div>
+
+<!-- ===================== chrome ===================== -->
+<header class="nav">
+  <div class="wordmark">maestro</div>
+  <div class="nav-actions">
+    <button class="icon-btn" aria-label="Notifications">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>
+    </button>
+    <button class="icon-btn" aria-label="Settings">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+</header>
+
+<div class="subnav">
+  <button class="crumb">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+    Trips
+  </button>
+  <span class="trip-name">Best of Italy &amp; Croatia, October 2026</span>
+  <button class="pill ta-only">Not started <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+  <button class="pill ta-only">Assign owner <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+  <button class="pill ta-only">Assign TA <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></button>
+  <span class="pill plain ta-only" id="bookedCount">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+    0/6 Booked
+  </span>
+
+  <div class="subnav-right">
+    <div class="seg-toggle">
+      <button aria-pressed="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        Itinerary
+      </button>
+      <button aria-pressed="false">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
+        Calendar
+      </button>
+    </div>
+    <button class="btn btn-primary">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9.9 2.1 8.5 6.4 4.2 7.8l4.3 1.4 1.4 4.3 1.4-4.3 4.3-1.4-4.3-1.4z"/><path d="M18 13l-.8 2.4-2.4.8 2.4.8.8 2.4.8-2.4 2.4-.8-2.4-.8z"/></svg>
+      Maestro AI
+    </button>
+  </div>
+</div>
+
+<!-- ===================== body ===================== -->
+<div class="shell">
+  <main class="main">
+    <div class="col">
+      <button class="btn btn-outline btn-sm ta-only">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>
+        Add cover photo
+      </button>
+
+      <h2 class="trip-title">Best of Italy &amp; Croatia: 11 Nights Aboard Celebrity Constellation</h2>
+      <div class="trip-meta">
+        <span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+          Rome to Ravenna
+        </span>
+        <span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18M8 2v4M16 2v4"/></svg>
+          October 11 &ndash; 23, 2026
+        </span>
+        <span>2 travellers</span>
+      </div>
+
+      <div class="rule"></div>
+      <div id="itin"></div>
+    </div>
+  </main>
+
+  <!-- ===================== rail ===================== -->
+  <aside class="rail">
+    <div class="rail-card">
+      <div class="rail-person">
+        <span class="avatar">MS</span>
+        <div>
+          <div style="font-weight:600">Malou Smith</div>
+          <div style="font-size:11px;color:var(--text-mut)">Member since 2025</div>
+        </div>
+        <button class="btn btn-sm btn-ghost ta-only" style="margin-left:auto">Member Brief</button>
+      </div>
+      <div class="rail-kv">
+        <div><div class="k">Phone</div>+1 415 555 0148</div>
+        <div><div class="k">Email</div>malou@example.com</div>
+      </div>
+    </div>
+
+    <div class="rail-card" style="padding-top:4px;padding-bottom:4px">
+      <div class="rail-acc" style="border-top:0"><b>Travellers</b><span class="v">2</span></div>
+      <div class="rail-acc"><b>Trip Context</b><span class="v">Anniversary</span></div>
+      <div class="rail-acc"><b>Pricing Summary</b><span class="v" id="railTotal">$4,180</span></div>
+    </div>
+
+    <div class="rail-card ta-only" id="railCommission" hidden>
+      <div style="font-size:11px;letter-spacing:.08em;color:var(--text-mut);font-weight:700;margin-bottom:8px">COMMISSION</div>
+      <div class="rail-acc" style="border-top:0"><b>Cruise</b><span class="v">12.8%</span></div>
+      <div class="rail-acc"><b>DMC</b><span class="v">9.0%</span></div>
+      <div class="rail-acc"><b>Hotel</b><span class="v">8.4%</span></div>
+      <div style="font-size:11px;color:var(--text-mut);margin-top:8px;line-height:1.5">
+        Kenny Liao, #all-traveladvisors, 2026-06-09. Cruise is the highest-commission category Maestro sells,
+        and the only one with no component type.
+      </div>
+    </div>
+
+    <div class="rail-note ta-only">
+      <b>PROTOTYPE</b>
+      Demo data. Built for the <span style="white-space:nowrap">CON-1688</span> product loop.
+      Open <strong>What this argues</strong> at the bottom right for the reasoning and the open questions.
+    </div>
+  </aside>
+</div>
+
+<!-- ===================== floating actions ===================== -->
+<div class="fabs">
+  <button class="fab" data-act="member" id="fabMember">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2.06 12.35a1 1 0 0 1 0-.7 10.75 10.75 0 0 1 19.88 0 1 1 0 0 1 0 .7 10.75 10.75 0 0 1-19.88 0"/><circle cx="12" cy="12" r="3"/></svg>
+    <span id="fabMemberLabel">Member preview</span>
+  </button>
+  <button class="fab accent" data-act="notes">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    What this argues
+  </button>
+</div>
+
+<!-- ===================== modal ===================== -->
+<div class="scrim" id="scrim" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" id="modal"></div>
+</div>
+
+<!-- ===================== notes panel ===================== -->
+<aside class="notes" id="notes" aria-label="What this prototype argues">
+  <div class="notes-head">
+    <h2>What this argues</h2>
+    <button class="icon-btn x" data-act="close-notes" aria-label="Close">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+  </div>
+  <div class="notes-body">
+    <h3>THE ONE IDEA</h3>
+    <p>
+      <strong>One container, four types.</strong> "DMC Booking" in the current design is not a DMC feature.
+      It is a multi-day segment that happens to have been drawn for DMCs first. Rename it, let the type vary,
+      and cruise stops being a special case.
+    </p>
+
+    <h3>THIS IS NOT A NEW PROPOSAL</h3>
+    <p>
+      Dustin already made this call in Conductor Squad Planning on <strong>2026-07-21</strong>: one multi-day
+      component type covering cruises, multi-day tours <strong>and multi-day train rides</strong>, because
+      ancillary items can hang off those days. Cruise design was folded into DSN-32 with Juan in the same
+      meeting. This prototype just makes that decision concrete enough to react to.
+    </p>
+
+    <h3>WHY CRUISE IS THE RIGHT TEST CASE</h3>
+    <ul>
+      <li><strong>It is the hardest shape.</strong> 11 nights, 3 sea days, an overnight in port, two different
+        countries, and a fare that is per person while the itinerary prices per package.</li>
+      <li><strong>The supply side already models it.</strong> <code>provider.schema.ts</code> ships
+        <code>cruise_line</code> and <code>multiday_tour_operator</code> as provider types today, while
+        <code>componentTypeSchema</code> is still
+        <code>['flight','hotel','experience','transfer','dining','other']</code>. CON-1688 closes an asymmetry,
+        it does not start from zero.</li>
+      <li><strong>It is the highest-commission category we sell.</strong> Cruise 12.8% against a book average
+        of 8.4% (Kenny Liao, #all-traveladvisors, 2026-06-09). That number appears on no cruise ticket.</li>
+    </ul>
+
+    <h3>BUILT FROM OPS' OWN FIELD LIST</h3>
+    <p>
+      The capture form is not invented. It is Nina Price's list from <strong>#ta-ops-pod-1 on 2026-03-19</strong>,
+      four months before CON-1688 was written, and cited by no ticket:
+    </p>
+    <ul>
+      <li>Name of cruise ship, title of trip, dates</li>
+      <li>Embarkation date, city and time</li>
+      <li>Disembarkation date, city and time</li>
+      <li>Stateroom type and link</li>
+      <li>Total cost, experience style, perks</li>
+    </ul>
+    <p>
+      The demo sailing is real too: Christine's Celebrity Constellation booking from #cluster-rebeca on
+      2026-07-29, down to the booking ID and stateroom number.
+    </p>
+
+    <h3>WHAT THE CURRENT DESIGN CANNOT DO</h3>
+    <ul>
+      <li><strong>Sea days.</strong> A day-grouped item list has nothing to show on Oct 14, 17 and 21.
+        Kenny's ask on 2026-08-05 was that components be populated on every cruise day rather than left blank.
+        Here they render as first-class.</li>
+      <li><strong>The echo problem.</strong> The DMC package repeats its header on every day it covers. Two days
+        is fine. Eleven is not. This uses one continuous segment with a day rail instead.</li>
+      <li><strong>Per-person fare.</strong> The pricing toggle is Package or Per item. A cruise fare is per person,
+        with port taxes on top. That is a third mode.</li>
+      <li><strong>Port calls.</strong> Arrival and departure times per port are what shore excursions hang off.
+        Rebeca asked for exactly this on 2026-08-04, to beat the cruise line's own excursions.</li>
+      <li><strong>Not wiping the itinerary.</strong> Alejandro reported on 2026-03-19 that adding a cruise wiped
+        the existing day-by-day. Never answered. The pre-cruise Rome night survives here on purpose.</li>
+    </ul>
+
+    <h3>THE FORK STILL OPEN ON CON-1688</h3>
+    <div class="fork a">
+      <b>A. One polymorphic multi_day_segment</b>
+      <p>Variants cruise / dmc / tour / rail. Shared span, day rail, pricing and linking. Type-specific attributes
+        underneath. What this prototype shows.</p>
+    </div>
+    <div class="fork b">
+      <b>B. Sibling component types</b>
+      <p>A cruise type, a DMC type, a tour type. Less abstraction now, four places to change later. CON-1834
+        (trains as their own type) is already pulling this way, and neither ticket links to the other.</p>
+    </div>
+
+    <h3>QUESTIONS FOR DUSTIN</h3>
+    <ol class="q">
+      <li>Polymorphic <code>multi_day_segment</code> with a variant, or sibling types per shape? This is the
+        open question on CON-1688 and it blocks CON-1693.</li>
+      <li>Does CON-1834 (trains as their own component type) fold into this, or stay separate? Right now the two
+        decisions contradict each other and neither ticket references the other.</li>
+      <li>When DMC packages ship as ordinary components in v1 per CON-2193, what is the migration path once a real
+        multi-day type lands? Nobody has raised this.</li>
+      <li>Is per-person fare with separate port taxes in scope for v1 pricing, or does cruise inherit the
+        package-price model and we absorb the error?</li>
+      <li>Is cruise a must-have or a nice-to-have? CON-2169 (Redmond, Silversea) travels Aug 23 and Marco's read
+        is that it expires before it can ship.</li>
+    </ol>
+
+    <h3>WHAT THIS IS NOT</h3>
+    <p>
+      Not a spec, not a design handoff, and not a data model. The schema shown is inferred from the Figma and
+      from ops' Slack, not read from code. Juan owns the visual design on DSN-32. This is a conversation piece
+      to unblock the CON-1688 decision.
+    </p>
+  </div>
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<script src="multiday-segment.js"></script>
+</body>
+</html>
