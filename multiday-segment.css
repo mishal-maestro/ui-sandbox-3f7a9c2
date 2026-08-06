@@ -258,6 +258,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .seg-price span { display: block; font-size: 11px; color: var(--text-sec); }
 .seg-head-actions { display: flex; gap: 4px; margin-left: 10px; }
 
+/* accommodation invariant strip - CON-1688 proposal 3 */
+.seg-invariant {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 11px 16px; background: var(--success-bg); color: var(--success);
+  font-size: 12px; border-top: 1px solid rgba(32,111,62,.12);
+}
+.seg-invariant b { font-weight: 700; }
+.seg-invariant .then {
+  display: block; margin-top: 3px; color: var(--text-sec);
+}
+.seg-invariant .then s { color: var(--text-mut); }
+
 /* span rail */
 .seg-body { padding: 0; }
 .seg-day {

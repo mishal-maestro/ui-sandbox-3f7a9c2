@@ -285,6 +285,20 @@
             <button class="icon-btn" aria-label="Remove">${svg(IC.trash, 15)}</button>
           </div>
         </div>
+        ${state.member ? '' : `
+        <div class="seg-invariant">
+          ${svg(IC.check, 15)}
+          <div>
+            <b>Supplies its own accommodation.</b>
+            ${CRUISE.nights} nights are covered by this segment, so
+            <code>city-stay-has-hotel</code> passes without a hotel component, and the
+            ${CRUISE.days.filter(x => x.kind === 'sea').length} days at sea route cleanly.
+            <span class="then">
+              Today those nights read as <s>${CRUISE.nights} nights with nowhere to sleep</s> and the
+              fidelity check false-fails every one of them.
+            </span>
+          </div>
+        </div>`}
         <div class="seg-body">
           ${CRUISE.days.map(segDayRow).join('')}
         </div>

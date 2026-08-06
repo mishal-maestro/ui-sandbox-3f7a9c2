@@ -216,6 +216,10 @@
         with port taxes on top. That is a third mode.</li>
       <li><strong>Port calls.</strong> Arrival and departure times per port are what shore excursions hang off.
         Rebeca asked for exactly this on 2026-08-04, to beat the cruise line's own excursions.</li>
+      <li><strong>Accommodation semantics.</strong> A cruise sleeps the member for 11 nights, so
+        <code>city-stay-has-hotel</code> should pass without a hotel component. Today it false-fails every
+        one of those nights. This is proposal 3 on CON-1688 and part of its signoff criteria, and it is the
+        thing that makes a cruise structurally different from a DMC land package.</li>
       <li><strong>Not wiping the itinerary.</strong> Alejandro reported on 2026-03-19 that adding a cruise wiped
         the existing day-by-day. Never answered. The pre-cruise Rome night survives here on purpose.</li>
     </ul>
@@ -236,6 +240,9 @@
     <ol class="q">
       <li>Polymorphic <code>multi_day_segment</code> with a variant, or sibling types per shape? This is the
         open question on CON-1688 and it blocks CON-1693.</li>
+      <li>Does a segment satisfy the "every night has a place to sleep" invariant, and does a cruise own a
+        sub-list of dated port stops or do port calls model against <code>city_stays</code>? Both are open
+        questions on CON-1688 and both are needed for signoff.</li>
       <li>Does CON-1834 (trains as their own component type) fold into this, or stay separate? Right now the two
         decisions contradict each other and neither ticket references the other.</li>
       <li>When DMC packages ship as ordinary components in v1 per CON-2193, what is the migration path once a real
