@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feature Release Lifecycle - Process View (BPMN)</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    background: #f4f5f8;
+    color: #1a1d26;
+    padding: 28px;
+  }
+  .page {
+    background: #ffffff;
+    border: 1px solid #e2e4ea;
+    border-radius: 14px;
+    padding: 28px 32px;
+    max-width: 1790px;
+    margin: 0 auto;
+  }
+  .head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; flex-wrap: wrap; gap: 8px; }
+  .head h1 { font-size: 24px; font-weight: 650; letter-spacing: -0.3px; }
+  .head a { font-size: 13px; color: #4c5160; text-decoration: none; border: 1px solid #e2e4ea; border-radius: 999px; padding: 5px 14px; }
+  .head a:hover { border-color: #b3b8c4; }
+  .sub { font-size: 14px; color: #4c5160; margin-bottom: 14px; }
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; font-size: 12px; color: #4c5160; align-items: center; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
+  .scroll { overflow-x: auto; border: 1px solid #eef0f5; border-radius: 10px; }
+  svg { display: block; }
+  .lane-label { font-size: 14px; font-weight: 650; fill: #30343f; }
+  .lane-sub { font-size: 11.5px; fill: #6b7080; }
+  .t-title { font-size: 13px; font-weight: 650; fill: #1a1d26; }
+  .t-sub { font-size: 11.5px; fill: #6b7080; }
+  .s-text { font-size: 12px; font-weight: 600; fill: #444; }
+  .s-sub { font-size: 11px; fill: #6b7080; }
+  .gw-label { font-size: 12.5px; font-weight: 650; fill: #854f0b; }
+  .gw-sub { font-size: 11px; fill: #6b7080; }
+  .branch { font-size: 11px; font-weight: 600; fill: #6b7080; }
+  .ev-label { font-size: 11.5px; fill: #4c5160; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="head">
+    <h1>Feature Release Lifecycle - Process View</h1>
+    <a href="feature-release-lifecycle.html">Stage view (one-pager)</a>
+  </div>
+  <div class="sub">BPMN-style swimlanes: who does what, and what Linear and PostHog record at each step. The epic (parent issue) is the carrier through the whole flow. Proposal v0.1, Aug 2026.</div>
+  <div class="legend">
+    <span><span class="sw" style="background:#fff;border:1.5px solid #b3b8c4;"></span>task (colored bar = actor)</span>
+    <span><span class="sw" style="background:#fff7e8;border:1.5px solid #ba7517;transform:rotate(45deg);border-radius:2px;"></span>decision gate</span>
+    <span><span class="sw" style="background:#f7f8fa;border:1.5px dashed #9095a3;"></span>system update</span>
+    <span><span class="sw" style="background:#fff;border:2px solid #4cb782;border-radius:50%;"></span>start</span>
+    <span><span class="sw" style="background:#fff;border:3px solid #ef4444;border-radius:50%;"></span>GA</span>
+    <span style="color:#6b7080;">dashed arrow = system effect &middot; solid arrow = process flow</span>
+  </div>
+  <div class="scroll">
+  <svg width="1720" height="780" viewBox="0 0 1720 780" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Swimlane process diagram of the feature release lifecycle across squad engineering, QA, UAT owner, Linear and PostHog">
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <rect x="40" y="50" width="1650" height="710" fill="#ffffff" stroke="#d7dae2" stroke-width="1"/>
+    <rect x="40" y="520" width="1650" height="240" fill="#f7f8fa"/>
+    <line x1="40" y1="220" x2="1690" y2="220" stroke="#e2e4ea"/>
+    <line x1="40" y1="370" x2="1690" y2="370" stroke="#e2e4ea"/>
+    <line x1="40" y1="520" x2="1690" y2="520" stroke="#e2e4ea"/>
+    <line x1="40" y1="640" x2="1690" y2="640" stroke="#e2e4ea"/>
+    <line x1="170" y1="50" x2="170" y2="760" stroke="#e2e4ea"/>
+
+    <rect x="40" y="50" width="130" height="170" fill="#f4f5f8"/>
+    <rect x="40" y="220" width="130" height="150" fill="#f4f5f8"/>
+    <rect x="40" y="370" width="130" height="150" fill="#f4f5f8"/>
+    <rect x="40" y="520" width="130" height="120" fill="#eef0f5"/>
+    <rect x="40" y="640" width="130" height="120" fill="#eef0f5"/>
+
+    <circle cx="58" cy="128" r="4" fill="#4ea7fc"/>
+    <text x="70" y="132" class="lane-label">Squad</text>
+    <text x="70" y="150" class="lane-sub">engineering + lead</text>
+    <circle cx="58" cy="288" r="4" fill="#f2994a"/>
+    <text x="70" y="292" class="lane-label">QA</text>
+    <text x="70" y="310" class="lane-sub">Chathura, via label</text>
+    <circle cx="58" cy="438" r="4" fill="#8b5cf6"/>
+    <text x="70" y="442" class="lane-label">UAT owner</text>
+    <text x="70" y="460" class="lane-sub">seat TBD</text>
+    <circle cx="58" cy="573" r="4" fill="#8a8f9d"/>
+    <text x="70" y="577" class="lane-label">Linear</text>
+    <text x="70" y="595" class="lane-sub">system of record</text>
+    <circle cx="58" cy="693" r="4" fill="#8a8f9d"/>
+    <text x="70" y="697" class="lane-label">PostHog</text>
+    <text x="70" y="715" class="lane-sub">feature flags</text>
+
+    <circle cx="210" cy="135" r="15" fill="#ffffff" stroke="#4cb782" stroke-width="2"/>
+    <text x="210" y="172" class="ev-label" text-anchor="middle">Epic + flag plan</text>
+
+    <g>
+      <rect x="255" y="107" width="170" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
+      <rect x="255" y="107" width="4" height="56" fill="#4ea7fc"/>
+      <text x="268" y="130" class="t-title">Dev sub-issues built</text>
+      <text x="268" y="148" class="t-sub">merge behind the flag</text>
+    </g>
+
+    <text x="490" y="82" class="gw-label" text-anchor="middle">code-complete?</text>
+    <text x="490" y="97" class="gw-sub" text-anchor="middle">eng lead declares</text>
+    <polygon points="490,105 520,135 490,165 460,135" fill="#fff7e8" stroke="#ba7517" stroke-width="1.3"/>
+
+    <g>
+      <rect x="730" y="107" width="160" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
+      <rect x="730" y="107" width="4" height="56" fill="#4ea7fc"/>
+      <text x="743" y="130" class="t-title">Fix findings</text>
+      <text x="743" y="148" class="t-sub">new bug tickets</text>
+    </g>
+
+    <g>
+      <rect x="560" y="267" width="180" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
+      <rect x="560" y="267" width="4" height="56" fill="#f2994a"/>
+      <text x="573" y="290" class="t-title">Feature E2E pass</text>
+      <text x="573" y="308" class="t-sub">while the flag ramps</text>
+    </g>
+
+    <polygon points="810,265 840,295 810,325 780,295" fill="#fff7e8" stroke="#ba7517" stroke-width="1.3"/>
+    <text x="810" y="348" class="gw-label" text-anchor="middle">pass?</text>
+
+    <g>
+      <rect x="890" y="267" width="190" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
+      <rect x="890" y="267" width="4" height="56" fill="#f2994a"/>
+      <text x="903" y="290" class="t-title">Move epic to UAT</text>
+      <text x="903" y="308" class="t-sub">assign the UAT owner</text>
+    </g>
+
+    <g>
+      <rect x="1140" y="417" width="180" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
+      <rect x="1140" y="417" width="4" height="56" fill="#8b5cf6"/>
+      <text x="1153" y="440" class="t-title">Signoff, training, notes</text>
+      <text x="1153" y="458" class="t-sub">changelog agent drafts</text>
+    </g>
+
+    <polygon points="1390,415 1420,445 1390,475 1360,445" fill="#fff7e8" stroke="#ba7517" stroke-width="1.3"/>
+    <text x="1390" y="498" class="gw-label" text-anchor="middle">launch?</text>
+
+    <g>
+      <rect x="1450" y="417" width="170" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
+      <rect x="1450" y="417" width="4" height="56" fill="#8b5cf6"/>
+      <text x="1463" y="440" class="t-title">Flip flag, close epic</text>
+      <text x="1463" y="458" class="t-sub">file cleanup ticket</text>
+    </g>
+
+    <circle cx="1655" cy="445" r="15" fill="#ffffff" stroke="#ef4444" stroke-width="3"/>
+    <text x="1655" y="482" class="ev-label" text-anchor="middle">GA</text>
+
+    <g>
+      <rect x="250" y="560" width="170" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
+      <text x="335" y="580" class="s-text" text-anchor="middle">Sub-issues &#8594; Done</text>
+      <text x="335" y="596" class="s-sub" text-anchor="middle">at merge, as today</text>
+    </g>
+    <g>
+      <rect x="450" y="560" width="170" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
+      <text x="535" y="580" class="s-text" text-anchor="middle">Epic &#8594; Ready for QA</text>
+      <text x="535" y="596" class="s-sub" text-anchor="middle">the code-complete state</text>
+    </g>
+    <g>
+      <rect x="890" y="560" width="190" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
+      <text x="985" y="580" class="s-text" text-anchor="middle">Epic &#8594; UAT</text>
+      <text x="985" y="596" class="s-sub" text-anchor="middle">inbox ping to the owner</text>
+    </g>
+    <g>
+      <rect x="1400" y="560" width="190" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
+      <text x="1495" y="580" class="s-text" text-anchor="middle">Epic &#8594; Done</text>
+      <text x="1495" y="596" class="s-sub" text-anchor="middle">cleanup ticket created</text>
+    </g>
+
+    <g>
+      <rect x="250" y="680" width="170" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
+      <text x="335" y="700" class="s-text" text-anchor="middle">Flag created</text>
+      <text x="335" y="716" class="s-sub" text-anchor="middle">live at 0-1%</text>
+    </g>
+    <g>
+      <rect x="560" y="680" width="170" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
+      <text x="645" y="700" class="s-text" text-anchor="middle">Ramp 1 &#8594; 10 &#8594; 50%</text>
+      <text x="645" y="716" class="s-sub" text-anchor="middle">QA cohorts first</text>
+    </g>
+    <g>
+      <rect x="1500" y="680" width="140" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
+      <text x="1570" y="700" class="s-text" text-anchor="middle">Flag at 100%</text>
+      <text x="1570" y="716" class="s-sub" text-anchor="middle">live for everyone</text>
+    </g>
+
+    <line x1="225" y1="135" x2="251" y2="135" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+    <line x1="425" y1="135" x2="456" y2="135" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+    <path d="M490 165 V295 H556" fill="none" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+    <text x="502" y="215" class="branch">yes</text>
+    <line x1="740" y1="295" x2="776" y2="295" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+    <line x1="840" y1="295" x2="886" y2="295" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+    <text x="852" y="288" class="branch">yes</text>
+    <line x1="810" y1="265" x2="810" y2="167" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+    <text x="818" y="225" class="branch">no</text>
+    <path d="M730 135 H690 V263" fill="none" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+    <path d="M1080 295 H1110 V445 H1136" fill="none" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+    <line x1="1320" y1="445" x2="1356" y2="445" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+    <line x1="1420" y1="445" x2="1446" y2="445" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+    <text x="1425" y="438" class="branch">yes</text>
+    <path d="M1390 415 V385 H1230 V413" fill="none" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+    <text x="1298" y="379" class="branch">hold</text>
+    <line x1="1620" y1="445" x2="1636" y2="445" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+
+    <line x1="340" y1="163" x2="340" y2="556" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+    <line x1="585" y1="323" x2="585" y2="556" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+    <line x1="650" y1="323" x2="650" y2="676" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+    <line x1="985" y1="323" x2="985" y2="556" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+    <line x1="1500" y1="473" x2="1500" y2="556" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+    <line x1="1610" y1="473" x2="1610" y2="676" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+  </svg>
+  </div>
+</div>
+</body>
+</html>

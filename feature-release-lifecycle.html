@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feature Release Lifecycle</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    background: #f4f5f8;
+    color: #1a1d26;
+    padding: 28px;
+    max-width: 1536px;
+    margin: 0 auto;
+  }
+  .head a { font-size: 13px; color: #4c5160; text-decoration: none; border: 1px solid #e2e4ea; border-radius: 999px; padding: 5px 14px; margin-left: 12px; }
+  .head a:hover { border-color: #b3b8c4; }
+  .page {
+    background: #ffffff;
+    border: 1px solid #e2e4ea;
+    border-radius: 14px;
+    padding: 32px 36px 28px;
+  }
+  .head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+  .head h1 { font-size: 26px; font-weight: 650; letter-spacing: -0.3px; }
+  .head .tag { font-size: 13px; color: #6b7080; font-weight: 500; }
+  .sub { font-size: 14.5px; color: #4c5160; margin-bottom: 24px; }
+  .sub b { color: #1a1d26; }
+
+  /* stage strip */
+  .strip { display: flex; align-items: stretch; gap: 0; margin-bottom: 10px; }
+  .stage {
+    flex: 1 1 0;
+    border: 1px solid #e2e4ea;
+    border-top: 4px solid var(--c);
+    border-radius: 10px;
+    padding: 14px 14px 12px;
+    background: #fbfbfd;
+    display: flex; flex-direction: column;
+  }
+  .arrow {
+    align-self: center; flex: 0 0 26px; text-align: center;
+    color: #b3b8c4; font-size: 20px; font-weight: 600; line-height: 1;
+  }
+  .state {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: 14px; font-weight: 650; margin-bottom: 2px;
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: 0 0 auto; }
+  .statename { color: #30343f; }
+  .meaning { font-size: 12.5px; color: #6b7080; font-weight: 500; margin-bottom: 10px; }
+  .row { font-size: 12.5px; line-height: 1.45; margin-bottom: 8px; }
+  .row .lbl {
+    display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.7px;
+    text-transform: uppercase; color: #9095a3; margin-bottom: 2px;
+  }
+  .owner {
+    margin-top: auto; padding-top: 8px; border-top: 1px dashed #e2e4ea;
+    font-size: 12.5px;
+  }
+  .owner .lbl {
+    display: block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.7px;
+    text-transform: uppercase; color: #9095a3; margin-bottom: 2px;
+  }
+  .owner b { font-weight: 650; }
+  .tbd { color: #b45309; font-weight: 650; }
+
+  .handoff {
+    margin: 2px 0 22px;
+    display: flex; justify-content: center;
+  }
+  .handoff span {
+    font-size: 12.5px; font-weight: 600; color: #5b3fa8;
+    background: #f3effc; border: 1px solid #ddd2f5; border-radius: 999px;
+    padding: 6px 16px;
+  }
+
+  .band {
+    border: 1px solid #e2e4ea; border-radius: 10px;
+    padding: 12px 16px; margin-bottom: 18px;
+    display: flex; gap: 28px; align-items: baseline;
+    background: #fbfbfd;
+  }
+  .band .bandtitle {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase;
+    color: #9095a3; flex: 0 0 auto;
+  }
+  .band ul { list-style: none; display: flex; gap: 26px; flex-wrap: wrap; }
+  .band li { font-size: 12.5px; color: #4c5160; }
+  .band li b { color: #1a1d26; font-weight: 600; }
+
+  .cols { display: flex; gap: 18px; }
+  .col {
+    flex: 1 1 0; border: 1px solid #e2e4ea; border-radius: 10px;
+    padding: 14px 16px; background: #fbfbfd;
+  }
+  .col h2 {
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase;
+    color: #9095a3; margin-bottom: 8px;
+  }
+  .col ol { padding-left: 18px; }
+  .col li { font-size: 12.5px; color: #30343f; line-height: 1.5; margin-bottom: 4px; }
+  .col li b { font-weight: 650; }
+  .col .note { font-size: 12px; color: #6b7080; margin-top: 6px; }
+  code {
+    font-family: Consolas, "Courier New", monospace; font-size: 11.5px;
+    background: #eef0f5; border-radius: 4px; padding: 1px 5px; color: #30343f;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="head">
+    <h1>Feature Release Lifecycle</h1>
+    <div class="tag">Proposal v0.1 &middot; Aug 2026 <a href="feature-release-bpmn.html">Process view (BPMN)</a></div>
+  </div>
+  <div class="sub">
+    Member and team facing features, from epic + flag through GA. <b>The epic is the release:</b> it walks the states we already use, with defined gates and owners. Dev tickets keep closing at merge; <b>the epic is the only issue that waits</b>, and its wait is the signal: merged is not live. No new tickets, no new pipeline, one new label (<code>feature-release</code>).
+  </div>
+
+  <div class="strip">
+    <div class="stage" style="--c:#8a8f9d;">
+      <div class="state"><span class="dot"></span><span class="statename">In Progress</span></div>
+      <div class="meaning">Dev underway behind the flag</div>
+      <div class="row"><span class="lbl">Runs as today</span>Sub-issues merge to main behind the PostHog flag and go Done at merge, as today. QA routing stays on <code>qa:chathura</code>.</div>
+      <div class="owner"><span class="lbl">Owner</span><b>Squad engineers</b></div>
+    </div>
+    <div class="arrow">&#8594;</div>
+    <div class="stage" style="--c:#4ea7fc;">
+      <div class="state"><span class="dot"></span><span class="statename">Ready for QA</span></div>
+      <div class="meaning">= Code-complete</div>
+      <div class="row"><span class="lbl">Gate to enter</span>All dev subs Done behind flag &middot; flag live in PostHog at 0-1% with correct tags &middot; feature E2E cases attached &middot; no open S0/S1</div>
+      <div class="owner"><span class="lbl">Declared by</span><b>Squad eng lead</b></div>
+    </div>
+    <div class="arrow">&#8594;</div>
+    <div class="stage" style="--c:#f2994a;">
+      <div class="state"><span class="dot"></span><span class="statename">In QA</span></div>
+      <div class="meaning">Feature-level end-to-end pass</div>
+      <div class="row"><span class="lbl">What happens</span>Full E2E across the feature while the flag ramps (1% &#8594; 10% &#8594; 50%). Routed the same way as per-ticket QA: <code>qa:chathura</code> label on the epic.</div>
+      <div class="owner"><span class="lbl">Owner</span><b>Chathura</b> (QA lead, via label)</div>
+    </div>
+    <div class="arrow">&#8594;</div>
+    <div class="stage" style="--c:#8b5cf6;">
+      <div class="state"><span class="dot"></span><span class="statename">UAT</span></div>
+      <div class="meaning">Business handoff and enablement</div>
+      <div class="row"><span class="lbl">What happens</span>UAT signoff &middot; team training &middot; team + member release notes (changelog agent drafts, owner edits and posts)</div>
+      <div class="owner"><span class="lbl">Owner</span><b class="tbd">UAT owner (seat TBD)</b></div>
+    </div>
+    <div class="arrow">&#8594;</div>
+    <div class="stage" style="--c:#4cb782;">
+      <div class="state"><span class="dot"></span><span class="statename">Done</span></div>
+      <div class="meaning">= GA, live for everyone</div>
+      <div class="row"><span class="lbl">Gate to close</span>Flag at 100% &middot; closing comment (flag, who, when) &middot; cleanup ticket filed</div>
+      <div class="owner"><span class="lbl">Flipped by</span><b class="tbd">UAT owner (authority TBD)</b></div>
+    </div>
+  </div>
+
+  <div class="handoff">
+    <span>The handoff = the epic moves to UAT and is assigned to the UAT owner. The assignee change lands in their Linear inbox with the checklist in the epic description.</span>
+  </div>
+
+  <div class="band">
+    <div class="bandtitle">Unchanged</div>
+    <ul>
+      <li><b>Merge automation</b> &middot; dev tickets still go Done at PR merge, no change; QA stays routed via <code>qa:chathura</code></li>
+      <li><b>Deploy releases</b> &middot; prod pipeline + #engineering-release-notes keep tracking deploys</li>
+      <li><b>Rollout ladder (ENG-379)</b> &middot; per-flag path set at brief: straight to 100% / UAT first / beta cohort. This lifecycle = the UAT-first path made concrete</li>
+      <li><b>Flag hygiene routine (PLT-978)</b> &middot; weekly digest feeds the UAT stage and the coverage sweep</li>
+    </ul>
+  </div>
+
+  <div class="cols">
+    <div class="col">
+      <h2>Two saved views</h2>
+      <ol>
+        <li><b>Feature Releases</b> &middot; <code>feature-release</code> epics grouped by state: what is code-complete, in E2E QA, awaiting handoff, at GA</li>
+        <li><b>Awaiting handoff</b> &middot; the UAT owner's queue</li>
+      </ol>
+      <div class="note">Views are workspace level, so squad changes (e.g. CC v1 wind-down) do not affect them. A scheduled sweep backfills the label from PostHog flag tags so coverage is mechanical, not memory.</div>
+    </div>
+    <div class="col">
+      <h2>Decisions needed (POs)</h2>
+      <ol>
+        <li><b>UAT owner seat</b> &middot; Kenny floated, needs capacity + agreement; one global owner or per squad</li>
+        <li><b>Code-complete definition</b> &middot; ratify the gate above</li>
+        <li><b>Flag-flip authority</b> &middot; UAT owner alone, or eng lead co-sign</li>
+        <li><b>Hold authority</b> &middot; can the UAT owner hold a launch, on what grounds</li>
+        <li><b>Member notes</b> &middot; where they publish, who approves the copy</li>
+      </ol>
+    </div>
+    <div class="col">
+      <h2>Pilot</h2>
+      <ol>
+        <li><b>CON-1606</b> Tasks page redesign &middot; already at the code-complete gate (9/10 subs Done, flag <code>tasks-page-redesign</code>)</li>
+        <li><b>CON-2632</b> DMC itinerary builder</li>
+        <li><b>CON-2193</b> External itinerary import</li>
+      </ol>
+      <div class="note">Exit criterion: one feature through the full lifecycle, handoff to GA, via the named owner. Then roll out to all member/team facing epics.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
