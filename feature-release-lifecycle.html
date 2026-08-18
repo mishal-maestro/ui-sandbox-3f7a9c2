@@ -129,7 +129,7 @@
 <div class="page">
   <div class="head">
     <h1>Feature Release Lifecycle</h1>
-    <div class="tag">Proposal v0.1 &middot; Aug 2026 <a href="feature-release-bpmn.html">Process view (BPMN) &#8594;</a></div>
+    <div class="tag">Proposal v0.2 &middot; Aug 2026 <a href="feature-release-bpmn.html">Process view (BPMN) &#8594;</a></div>
   </div>
   <div class="sub">
     Member and team facing features, from epic + flag through GA. <b>The epic is the release:</b> it walks the states we already use, with defined gates and owners. Dev tickets keep closing at merge; <b>the epic is the only issue that waits</b>, and its wait is the signal: merged is not live. No new tickets, no new pipeline, one new label (<code>feature-release</code>).
@@ -153,22 +153,22 @@
     <div class="stage" style="--c:#f2994a;">
       <div class="state"><span class="dot"></span><span class="statename">In QA</span></div>
       <div class="meaning">Feature-level end-to-end pass</div>
-      <div class="row"><span class="lbl">What happens</span>Full E2E across the feature while the flag ramps (1% &#8594; 10% &#8594; 50%). Routed the same way as per-ticket QA: <code>qa:chathura</code> label on the epic.</div>
+      <div class="row"><span class="lbl">What happens</span>Full E2E across the feature with the flag on for the internal cohort only (staff + QA accounts, no members). Routed the same way as per-ticket QA: <code>qa:chathura</code> label on the epic.</div>
       <div class="owner"><span class="lbl">Owner</span><b>Chathura</b> (QA lead, via label)</div>
     </div>
     <div class="arrow">&#8594;</div>
     <div class="stage" style="--c:#8b5cf6;">
       <div class="state"><span class="dot"></span><span class="statename">UAT</span></div>
       <div class="meaning">Business handoff and enablement</div>
-      <div class="row"><span class="lbl">What happens</span>UAT signoff &middot; team training &middot; team + member release notes (changelog agent drafts, owner edits and posts)</div>
-      <div class="owner"><span class="lbl">Owner</span><b class="tbd">UAT owner (seat TBD)</b></div>
+      <div class="row"><span class="lbl">What happens</span>UAT signoff with an Ops tester &middot; team training &middot; team + member release notes (changelog agent drafts, owner edits and posts). Still internal: members see nothing yet.</div>
+      <div class="owner"><span class="lbl">Owner</span><b>Kenny</b> (accepted) + Ops tester</div>
     </div>
     <div class="arrow">&#8594;</div>
     <div class="stage" style="--c:#4cb782;">
       <div class="state"><span class="dot"></span><span class="statename">Done</span></div>
       <div class="meaning">= GA, live for everyone</div>
-      <div class="row"><span class="lbl">Gate to close</span>Flag at 100% &middot; closing comment (flag, who, when) &middot; cleanup ticket filed</div>
-      <div class="owner"><span class="lbl">Flipped by</span><b class="tbd">UAT owner (authority TBD)</b></div>
+      <div class="row"><span class="lbl">Gate to close</span>Member ramp 1 &#8594; 10 &#8594; 50 &#8594; 100% (or straight flip, per the ENG-379 ladder) &middot; closing comment (flag, who, when) &middot; cleanup ticket filed</div>
+      <div class="owner"><span class="lbl">Flipped by</span><b>Kenny</b> <span class="tbd">(co-sign TBD)</span></div>
     </div>
   </div>
 
@@ -198,7 +198,7 @@
     <div class="col">
       <h2>Decisions needed (POs)</h2>
       <ol>
-        <li><b>UAT owner seat</b> &middot; Kenny floated, needs capacity + agreement; one global owner or per squad</li>
+        <li><b>UAT owner seat</b> &middot; Kenny accepted (Aug 18), loops in an Ops tester; one global owner or per squad TBC</li>
         <li><b>Code-complete definition</b> &middot; ratify the gate above</li>
         <li><b>Flag-flip authority</b> &middot; UAT owner alone, or eng lead co-sign</li>
         <li><b>Hold authority</b> &middot; can the UAT owner hold a launch, on what grounds</li>

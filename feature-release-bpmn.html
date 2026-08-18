@@ -64,7 +64,7 @@
     <h1>Feature Release Lifecycle - Process View</h1>
     <a href="feature-release-lifecycle.html">Stage view (one-pager) &#8594;</a>
   </div>
-  <div class="sub">BPMN-style swimlanes: who does what, and what Linear and PostHog record at each step. The epic (parent issue) is the carrier through the whole flow. Proposal v0.1, Aug 2026.</div>
+  <div class="sub">BPMN-style swimlanes: who does what, and what Linear and PostHog record at each step. The epic (parent issue) is the carrier through the whole flow. Members see nothing until UAT has signed off; the ramp is the launch, not the test. Proposal v0.2, Aug 2026.</div>
   <div class="legend">
     <span><span class="sw" style="background:#fff;border:1.5px solid #b3b8c4;"></span>task (colored bar = actor)</span>
     <span><span class="sw" style="background:#fff7e8;border:1.5px solid #ba7517;transform:rotate(45deg);border-radius:2px;"></span>decision gate</span>
@@ -103,7 +103,7 @@
     <text x="70" y="310" class="lane-sub">Chathura, via label</text>
     <circle cx="58" cy="438" r="4" fill="#8b5cf6"/>
     <text x="70" y="442" class="lane-label">UAT owner</text>
-    <text x="70" y="460" class="lane-sub">seat TBD</text>
+    <text x="70" y="460" class="lane-sub">Kenny + Ops tester</text>
     <circle cx="58" cy="573" r="4" fill="#8a8f9d"/>
     <text x="70" y="577" class="lane-label">Linear</text>
     <text x="70" y="595" class="lane-sub">system of record</text>
@@ -136,7 +136,7 @@
       <rect x="560" y="267" width="180" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
       <rect x="560" y="267" width="4" height="56" fill="#f2994a"/>
       <text x="573" y="290" class="t-title">Feature E2E pass</text>
-      <text x="573" y="308" class="t-sub">while the flag ramps</text>
+      <text x="573" y="308" class="t-sub">on the internal cohort</text>
     </g>
 
     <polygon points="810,265 840,295 810,325 780,295" fill="#fff7e8" stroke="#ba7517" stroke-width="1.3"/>
@@ -162,8 +162,8 @@
     <g>
       <rect x="1450" y="417" width="170" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
       <rect x="1450" y="417" width="4" height="56" fill="#8b5cf6"/>
-      <text x="1463" y="440" class="t-title">Flip flag, close epic</text>
-      <text x="1463" y="458" class="t-sub">file cleanup ticket</text>
+      <text x="1463" y="440" class="t-title">Launch: ramp to 100%</text>
+      <text x="1463" y="458" class="t-sub">close epic + cleanup</text>
     </g>
 
     <circle cx="1655" cy="445" r="15" fill="#ffffff" stroke="#ef4444" stroke-width="3"/>
@@ -197,13 +197,13 @@
     </g>
     <g>
       <rect x="560" y="680" width="170" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
-      <text x="645" y="700" class="s-text" text-anchor="middle">Ramp 1 &#8594; 10 &#8594; 50%</text>
-      <text x="645" y="716" class="s-sub" text-anchor="middle">QA cohorts first</text>
+      <text x="645" y="700" class="s-text" text-anchor="middle">Internal cohort only</text>
+      <text x="645" y="716" class="s-sub" text-anchor="middle">staff + QA accounts</text>
     </g>
     <g>
       <rect x="1500" y="680" width="140" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
-      <text x="1570" y="700" class="s-text" text-anchor="middle">Flag at 100%</text>
-      <text x="1570" y="716" class="s-sub" text-anchor="middle">live for everyone</text>
+      <text x="1570" y="700" class="s-text" text-anchor="middle">Member ramp</text>
+      <text x="1570" y="716" class="s-sub" text-anchor="middle">1 &#8594; 10 &#8594; 50 &#8594; 100%</text>
     </g>
 
     <line x1="225" y1="135" x2="251" y2="135" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
