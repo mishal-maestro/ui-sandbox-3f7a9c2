@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ENG-833 Tour Pricing Options</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* Dark Conductor tokens from app.css .dark block */
+      --maestro-bg: rgb(24, 24, 27);
+      --maestro-surface: rgb(32, 32, 36);
+      --maestro-card: rgb(38, 38, 42);
+      --maestro-surface-strong: rgb(52, 52, 58);
+      --maestro-border: rgb(50, 50, 56);
+      --maestro-accent: rgb(255, 110, 70);
+      --maestro-success: rgb(60, 180, 100);
+      --maestro-danger: rgb(230, 90, 70);
+      --maestro-text: rgb(240, 238, 235);
+      --maestro-text-secondary: rgb(180, 175, 168);
+      --maestro-text-tertiary: rgb(120, 115, 108);
+      --maestro-radius: 0.75rem;
+      --font-sans: "Commissioner", "Segoe UI", -apple-system, system-ui, sans-serif;
+      --font-serif: "DM Serif Display", Georgia, serif;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--maestro-bg);
+      color: var(--maestro-text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Header */
+    .header {
+      height: 56px;
+      border-bottom: 1px solid var(--maestro-border);
+      background: var(--maestro-bg);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .meta-chrome {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--maestro-text-tertiary);
+      font-weight: 600;
+    }
+
+    /* Main */
+    .main {
+      padding: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Trip context */
+    .trip-context {
+      background: var(--maestro-card);
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .trip-name {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .trip-meta {
+      font-size: 13px;
+      color: var(--maestro-text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .trip-party-note {
+      font-size: 11px;
+      color: var(--maestro-text-tertiary);
+      margin-top: 8px;
+    }
+
+    /* Tabs */
+    .tab-bar {
+      background: var(--maestro-card);
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      padding: 12px;
+      margin-bottom: 20px;
+    }
+
+    .tab-bar-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--maestro-text-tertiary);
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .tab {
+      padding: 6px 14px;
+      border-radius: 9999px;
+      border: 1px solid var(--maestro-border);
+      background: var(--maestro-card);
+      color: var(--maestro-text-secondary);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .tab:hover {
+      background: var(--maestro-surface);
+      color: var(--maestro-text);
+    }
+
+    .tab.active {
+      background: var(--maestro-accent);
+      color: white;
+      border-color: var(--maestro-accent);
+    }
+
+    /* Tab content */
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Layout */
+    .content-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 340px;
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .content-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Callout */
+    .callout {
+      background: var(--maestro-surface);
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .callout-title {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .callout-text {
+      font-size: 12px;
+      color: var(--maestro-text-secondary);
+      line-height: 1.6;
+    }
+
+    .callout-text ul {
+      list-style: none;
+      padding-left: 0;
+      margin-top: 6px;
+    }
+
+    .callout-text li {
+      padding-left: 14px;
+      position: relative;
+      margin-bottom: 4px;
+    }
+
+    .callout-text li::before {
+      content: "•";
+      position: absolute;
+      left: 2px;
+      color: var(--maestro-accent);
+    }
+
+    /* Controls */
+    .controls {
+      background: var(--maestro-card);
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .control-row + .control-row {
+      margin-top: 12px;
+    }
+
+    .control-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--maestro-text-secondary);
+    }
+
+    .segmented-control {
+      display: inline-flex;
+      border: 1px solid var(--maestro-border);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .segmented-option {
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      background: var(--maestro-card);
+      border: none;
+      cursor: pointer;
+      color: var(--maestro-text-secondary);
+      transition: all 0.15s;
+    }
+
+    .segmented-option:not(:last-child) {
+      border-right: 1px solid var(--maestro-border);
+    }
+
+    .segmented-option:hover {
+      background: var(--maestro-surface);
+    }
+
+    .segmented-option.active {
+      background: var(--maestro-accent);
+      color: white;
+    }
+
+    .select-control {
+      padding: 7px 12px;
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      background: var(--maestro-card);
+      font-size: 12px;
+      color: var(--maestro-text);
+      font-family: var(--font-sans);
+      cursor: pointer;
+    }
+
+    .link-btn {
+      color: var(--maestro-accent);
+      text-decoration: none;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .link-btn:hover {
+      text-decoration: underline;
+    }
+
+    /* Collection block */
+    .collection {
+      background: var(--maestro-card);
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .collection-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .collection-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .collection-title {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .collection-count {
+      color: var(--maestro-text-secondary);
+      font-size: 14px;
+    }
+
+    .collection-header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .date-pill {
+      padding: 4px 10px;
+      border: 1px solid var(--maestro-border);
+      border-radius: 6px;
+      background: var(--maestro-card);
+      font-size: 11px;
+      color: var(--maestro-text-secondary);
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .date-pill:hover {
+      background: var(--maestro-surface-strong);
+    }
+
+    .icon-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 9999px;
+      background: var(--maestro-accent);
+      border: none;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.15s;
+    }
+
+    .icon-btn:hover {
+      opacity: 0.9;
+    }
+
+    .icon-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .icon-btn.ghost {
+      background: transparent;
+      color: var(--maestro-text-tertiary);
+      border: 1px solid var(--maestro-border);
+    }
+
+    .icon-btn.ghost:hover {
+      background: var(--maestro-surface-strong);
+      opacity: 1;
+    }
+
+    .pencil-btn {
+      background: transparent;
+      border: 1px solid var(--maestro-border);
+      color: var(--maestro-text-tertiary);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s;
+    }
+
+    .pencil-btn:hover {
+      background: var(--maestro-surface-strong);
+    }
+
+    /* Card strip */
+    .card-strip-wrapper {
+      position: relative;
+    }
+
+    .card-strip {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .card-strip::-webkit-scrollbar {
+      display: none;
+    }
+
+    .card-strip {
+      scrollbar-width: none;
+    }
+
+    .scroll-arrows {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .scroll-arrow {
+      width: 28px;
+      height: 28px;
+      border-radius: 9999px;
+      border: 1px solid var(--maestro-border);
+      background: var(--maestro-card);
+      color: var(--maestro-text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .scroll-arrow:not(:disabled):hover {
+      background: var(--maestro-surface-strong);
+    }
+
+    .scroll-arrow:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .scroll-arrow svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Option card */
+    .option-card {
+      width: 252px;
+      flex-shrink: 0;
+      background: var(--maestro-bg);
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.15s;
+    }
+
+    .option-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      border-color: rgba(255, 110, 70, 0.3);
+    }
+
+    .option-card.hidden-card {
+      opacity: 0.6;
+      border-color: rgba(50, 50, 56, 0.5);
+    }
+
+    .option-card.hidden-card .card-image {
+      filter: grayscale(1);
+    }
+
+    .option-card.approved-card {
+      border-color: rgba(60, 180, 100, 0.3);
+    }
+
+    .option-card.rejected-card {
+      opacity: 0.5;
+      border-color: rgba(230, 90, 70, 0.2);
+    }
+
+    .card-image {
+      aspect-ratio: 3/2;
+      background: var(--maestro-surface-strong);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--maestro-text-tertiary);
+      font-size: 11px;
+    }
+
+    .image-overlay {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .overlay-btn {
+      padding: 6px;
+      border-radius: 6px;
+      background: rgba(0,0,0,0.6);
+      color: rgba(255,255,255,0.8);
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .overlay-btn:hover {
+      background: rgba(0,0,0,0.7);
+      color: white;
+    }
+
+    .overlay-btn svg {
+      width: 14px;
+      height: 14px;
+      display: block;
+    }
+
+    .card-body {
+      padding: 10px 12px 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .card-badges {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .badge-group {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      background: var(--maestro-surface-strong);
+      color: var(--maestro-text-secondary);
+    }
+
+    .badge.badge-source {
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 500;
+    }
+
+    .status-pill {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .status-pill svg {
+      width: 10px;
+      height: 10px;
+    }
+
+    .status-pill.recommended {
+      background: rgba(60, 180, 100, 0.1);
+      color: var(--maestro-success);
+    }
+
+    .status-pill.alternate {
+      background: var(--maestro-surface-strong);
+      color: var(--maestro-text-secondary);
+    }
+
+    .status-pill.approved {
+      background: rgba(60, 180, 100, 0.1);
+      color: var(--maestro-success);
+    }
+
+    .status-pill.rejected {
+      background: rgba(230, 90, 70, 0.1);
+      color: var(--maestro-danger);
+    }
+
+    .status-pill.booked {
+      background: rgba(255, 110, 70, 0.1);
+      color: var(--maestro-accent);
+    }
+
+    .card-title {
+      font-family: var(--font-serif);
+      font-size: 14px;
+      font-weight: bold;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-provenance {
+      font-size: 11px;
+      color: var(--maestro-text-tertiary);
+    }
+
+    .card-meta {
+      font-size: 11px;
+      color: var(--maestro-text-secondary);
+    }
+
+    .card-price {
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .price-amount {
+      font-weight: 600;
+      color: var(--maestro-text);
+    }
+
+    .price-suffix {
+      color: var(--maestro-text-secondary);
+    }
+
+    .price-secondary {
+      font-size: 10px;
+      color: var(--maestro-text-tertiary);
+      margin-top: 2px;
+    }
+
+    .card-desc {
+      font-size: 11px;
+      color: var(--maestro-text-secondary);
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .chip {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .chip.warning {
+      background: rgba(210, 160, 60, 0.15);
+      color: rgb(210, 160, 60);
+      border: 1px solid rgba(210, 160, 60, 0.3);
+    }
+
+    .chip.danger {
+      background: rgba(230, 90, 70, 0.15);
+      color: var(--maestro-danger);
+      border: 1px solid rgba(230, 90, 70, 0.3);
+    }
+
+    .card-footer {
+      width: 100%;
+      text-align: center;
+      padding: 8px;
+      border-top: 1px solid rgba(50, 50, 56, 0.6);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--maestro-accent);
+      background: var(--maestro-bg);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .card-footer:hover {
+      background: rgba(255, 110, 70, 0.05);
+    }
+
+    .hide-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px;
+      border-top: 1px solid rgba(50, 50, 56, 0.6);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--maestro-text-secondary);
+    }
+
+    .hide-toggle:hover {
+      color: var(--maestro-danger);
+      background: var(--maestro-surface);
+    }
+
+    .hide-toggle.hidden-state {
+      background: var(--maestro-accent);
+      color: white;
+    }
+
+    .hide-toggle.hidden-state:hover {
+      background: rgba(255, 110, 70, 0.9);
+    }
+
+    .hide-toggle svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Decision panel */
+    .decision-panel {
+      background: var(--maestro-card);
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      padding: 20px;
+      position: sticky;
+      top: 24px;
+    }
+
+    .panel-section {
+      margin-bottom: 16px;
+    }
+
+    .panel-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .panel-heading {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--maestro-text-tertiary);
+      margin-bottom: 6px;
+    }
+
+    .panel-content {
+      font-size: 12px;
+      color: var(--maestro-text-secondary);
+      line-height: 1.6;
+    }
+
+    .panel-content ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .panel-content li {
+      padding-left: 14px;
+      position: relative;
+      margin-bottom: 4px;
+    }
+
+    .panel-content li::before {
+      content: "•";
+      position: absolute;
+      left: 2px;
+      color: var(--maestro-accent);
+    }
+
+    .panel-content a {
+      color: var(--maestro-accent);
+      text-decoration: none;
+    }
+
+    .panel-content a:hover {
+      text-decoration: underline;
+    }
+
+    .verdict {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    .verdict.recommended {
+      background: rgba(60, 180, 100, 0.15);
+      color: var(--maestro-success);
+    }
+
+    .verdict.not-recommended {
+      background: rgba(230, 90, 70, 0.15);
+      color: var(--maestro-danger);
+    }
+
+    .verdict.good {
+      background: rgba(80, 160, 220, 0.15);
+      color: rgb(80, 160, 220);
+    }
+
+    /* Comparison table */
+    .comparison-table {
+      background: var(--maestro-card);
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      overflow: hidden;
+    }
+
+    .comparison-table table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .comparison-table th {
+      background: var(--maestro-surface);
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--maestro-text-secondary);
+      border-bottom: 1px solid var(--maestro-border);
+    }
+
+    .comparison-table td {
+      padding: 14px;
+      font-size: 12px;
+      color: var(--maestro-text);
+      border-bottom: 1px solid var(--maestro-border);
+      vertical-align: top;
+    }
+
+    .comparison-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .comparison-table .approach-cell {
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--maestro-card);
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      width: 420px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .modal-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--maestro-border);
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
+
+    .modal-caption {
+      font-size: 11px;
+      color: var(--maestro-text-tertiary);
+    }
+
+    .modal-caption a {
+      color: var(--maestro-accent);
+      text-decoration: none;
+    }
+
+    .modal-caption a:hover {
+      text-decoration: underline;
+    }
+
+    .modal-body {
+      padding: 16px;
+    }
+
+    .modal-field {
+      margin-bottom: 16px;
+    }
+
+    .modal-field:last-child {
+      margin-bottom: 0;
+    }
+
+    .modal-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--maestro-text-tertiary);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .stepper {
+      display: flex;
+      width: 100%;
+      align-items: stretch;
+      border: 1px solid var(--maestro-border);
+      border-radius: 0.5rem;
+      background: var(--maestro-card);
+      overflow: hidden;
+    }
+
+    .stepper-btn {
+      width: 36px;
+      background: transparent;
+      border: none;
+      color: var(--maestro-text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 0;
+      transition: background 0.15s;
+    }
+
+    .stepper-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .stepper-btn:first-child {
+      border-right: 1px solid var(--maestro-border);
+    }
+
+    .stepper-btn:last-child {
+      border-left: 1px solid var(--maestro-border);
+    }
+
+    .stepper-btn:not(:disabled):hover {
+      background: var(--maestro-surface);
+    }
+
+    .stepper-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .stepper-value {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+      align-self: center;
+    }
+
+    .modal-footer {
+      padding: 16px;
+      border-top: 1px solid var(--maestro-border);
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: var(--maestro-radius);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid var(--maestro-border);
+    }
+
+    .btn-secondary {
+      background: var(--maestro-card);
+      color: var(--maestro-text-secondary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--maestro-surface);
+    }
+
+    .btn-primary {
+      background: var(--maestro-accent);
+      color: white;
+      border-color: var(--maestro-accent);
+    }
+
+    .btn-primary:hover {
+      background: rgba(255, 110, 70, 0.9);
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--maestro-card);
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--maestro-text);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      z-index: 200;
+      animation: slideIn 0.2s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* Footer */
+    .footer {
+      background: var(--maestro-card);
+      border-top: 1px solid var(--maestro-border);
+      padding: 16px 24px;
+      font-size: 12px;
+      color: var(--maestro-text-secondary);
+      margin-top: 40px;
+    }
+
+    .footer a {
+      color: var(--maestro-accent);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Form mock (Tab 3) */
+    .form-mock {
+      background: var(--maestro-card);
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      max-width: 520px;
+    }
+
+    .form-mock-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--maestro-text-tertiary);
+      margin-bottom: 10px;
+    }
+
+    .form-mock-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .form-mock-field {
+      flex: 1;
+    }
+
+    .form-mock-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: var(--maestro-text-secondary);
+    }
+
+    .form-mock-field input {
+      width: 100%;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      background: var(--maestro-card);
+      color: var(--maestro-text);
+    }
+
+    .form-mock-field .locked-select {
+      width: 100%;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      background: var(--maestro-surface);
+      color: var(--maestro-text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .form-mock-field .locked-select svg {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+
+    .form-mock-help {
+      font-size: 11px;
+      color: var(--maestro-text-tertiary);
+      margin-top: 4px;
+    }
+
+    .occupancy-line {
+      padding: 8px 12px;
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      background: var(--maestro-surface);
+      font-size: 12px;
+      color: var(--maestro-text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Status dropdown menu (portaled) */
+    #status-menu {
+      display: none;
+      position: fixed;
+      background: var(--maestro-card);
+      border: 1px solid var(--maestro-border);
+      border-radius: var(--maestro-radius);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      padding: 4px 0;
+      min-width: 120px;
+      z-index: 150;
+    }
+
+    #status-menu.open {
+      display: block;
+    }
+
+    .status-option {
+      width: 100%;
+      text-align: left;
+      padding: 6px 10px;
+      font-size: 11px;
+      background: transparent;
+      border: none;
+      color: var(--maestro-text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+
+    .status-option:hover {
+      background: var(--maestro-surface);
+    }
+
+    .status-option svg {
+      width: 12px;
+      height: 12px;
+      flex-shrink: 0;
+    }
+
+    .status-option.recommended {
+      color: var(--maestro-success);
+    }
+
+    .status-option.alternate {
+      color: var(--maestro-text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">Maestro</div>
+    <div class="meta-chrome">Prototype Views</div>
+  </div>
+
+  <main class="main">
+    <div class="trip-context">
+      <div class="trip-name">Rome, Bianchi Family</div>
+      <div class="trip-meta">Jun 10-16, 2027</div>
+      <div class="trip-meta" id="trip-party-line">2 adults · 2 children · 1 infant, 4 paying travelers (infants comped)</div>
+      <div class="trip-party-note">
+        Party size lives on collections (edited via Edit Collection modal). No traveler control appears on this view.
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <div class="tab-bar-label">Prototype Views</div>
+      <div class="tabs">
+        <button class="tab active" data-tab="tab1">Today: the problem</button>
+        <button class="tab" data-tab="tab2">Option A: Bulk convert</button>
+        <button class="tab" data-tab="tab3">Option B: Trip-level unit</button>
+        <button class="tab" data-tab="tab4">Option C: Display normalization</button>
+        <button class="tab" data-tab="tab5">Recommended: Hybrid (B + C)</button>
+        <button class="tab" data-tab="tab6">Side by side</button>
+      </div>
+    </div>
+
+    <!-- Tab 1 -->
+    <div id="tab1" class="tab-content active">
+      <div class="content-layout">
+        <div>
+          <div class="callout">
+            <div class="callout-title">The problem</div>
+            <div class="callout-text" id="tab1-problem-text"></div>
+          </div>
+          <div class="callout">
+            <div class="callout-title">Why the data is mixed</div>
+            <div class="callout-text">
+              <ul>
+                <li><strong>MOB-774 root cause:</strong> The AI generator writes perPerson × party as a flat total and never writes price_unit, so unit-less rows read back as Per person.</li>
+                <li><strong>CON-1476 surfaces:</strong> Mobile API hardcodes "per person" on the party total and never sends priceUnit; unit-only patches re-derive nothing; compact detail card renders raw free-text unit verbatim.</li>
+              </ul>
+            </div>
+          </div>
+          <div id="collections-tab1"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2 -->
+    <div id="tab2" class="tab-content">
+      <div class="content-layout">
+        <div>
+          <div class="controls">
+            <div class="control-row">
+              <span class="control-label">Convert all tours to:</span>
+              <div class="segmented-control">
+                <button class="segmented-option" data-target="person" onclick="bulkConvert('person')">Per person</button>
+                <button class="segmented-option" data-target="group" onclick="bulkConvert('group')">Per group</button>
+              </div>
+              <a class="link-btn" onclick="revertBulkConvert()">Revert</a>
+            </div>
+          </div>
+          <div id="collections-tab2"></div>
+        </div>
+        <div class="decision-panel">
+          <div class="panel-section">
+            <div class="panel-heading">What it is</div>
+            <div class="panel-content">
+              Rewrite every stored price to a single target unit. Per-person prices get multiplied by current party size; totals and group prices get divided.
+            </div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-heading">Pros</div>
+            <div class="panel-content">
+              <ul>
+                <li>All cards display the same unit</li>
+                <li>Simple to understand</li>
+              </ul>
+            </div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-heading">Cons</div>
+            <div class="panel-content">
+              <ul>
+                <li>Fabricates figures nobody quoted</li>
+                <li>Fights canonicalizeNonHotelPrice which already keeps both figures</li>
+                <li>One-way data mutation</li>
+                <li>Wrong totals for different party sizes</li>
+              </ul>
+            </div>
+          </div>
+          <div class="verdict not-recommended">Not recommended</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3 -->
+    <div id="tab3" class="tab-content">
+      <div class="content-layout">
+        <div>
+          <div class="controls">
+            <div class="control-row">
+              <span class="control-label">This trip quotes tour prices as:</span>
+              <select class="select-control" id="trip-unit-select-tab3" onchange="setTripUnit(this.value)">
+                <option value="Total Price">Total for the group (family trip default)</option>
+                <option value="Per person">Per person</option>
+              </select>
+            </div>
+          </div>
+          <div class="callout">
+            <div class="callout-title">Entry enforcement (GetYourGuide model)</div>
+            <div class="callout-text">
+              The trip-level pricing preference locks the unit field on add-experience and edit forms. Tours entered in a mismatched unit show a warning. This prevents new mixed-unit entries but does not retroactively fix existing data.
+            </div>
+          </div>
+          <div class="form-mock">
+            <div class="form-mock-title">Add experience: pricing</div>
+            <div class="form-mock-row">
+              <div class="form-mock-field">
+                <label>Ticket price</label>
+                <input type="text" id="ticket-price-input" placeholder="$0.00" oninput="updateTicketPriceHint()">
+                <div class="form-mock-help" id="ticket-price-hint"></div>
+              </div>
+              <div class="form-mock-field">
+                <label>Pricing Unit</label>
+                <div class="locked-select" onclick="showMockToast('Locked to trip default, set in Trip settings')">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                  <span id="locked-unit-value">Total Price</span>
+                </div>
+                <div class="form-mock-help">Locked to trip default, set in Trip settings</div>
+              </div>
+            </div>
+          </div>
+          <div id="collections-tab3"></div>
+        </div>
+        <div class="decision-panel">
+          <div class="panel-section">
+            <div class="panel-heading">What it is</div>
+            <div class="panel-content">
+              A trip-level setting that enforces one pricing unit at entry. The add-experience form's unit field is locked to the trip default.
+            </div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-heading">Where the default lives</div>
+            <div class="panel-content">
+              Two candidate homes: a flat trip column (UpdateTripFieldsSchema pattern, <a href="https://linear.app/maestroinc/issue/CON-221">CON-221</a> settings block) or a collection-level unit inheriting like occupancy already does (matches model grain).
+            </div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-heading">Pros</div>
+            <div class="panel-content">
+              <ul>
+                <li>Prevents new mixed-unit entries</li>
+                <li>Clear guardrail for advisors</li>
+                <li>Respects stored supplier data</li>
+              </ul>
+            </div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-heading">Cons</div>
+            <div class="panel-content">
+              <ul>
+                <li>Does not fix existing mixed data</li>
+                <li>Requires manual re-entry to remediate</li>
+                <li>Still shows inconsistent units to members</li>
+              </ul>
+            </div>
+          </div>
+          <div class="verdict good">Good guardrail, incomplete fix</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4 -->
+    <div id="tab4" class="tab-content">
+      <div class="content-layout">
+        <div>
+          <div class="controls">
+            <div class="control-row">
+              <div class="occupancy-line">
+                <span id="occupancy-line-tab4">2 adults · 2 children · 1 infant, 4 paying</span>
+                <button class="pencil-btn" onclick="openEditCollectionModal('tab4')">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Edit Collection
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="callout">
+            <div class="callout-title">Display-only normalization</div>
+            <div class="callout-text">
+              Every card shows a computed total for the current party as the primary figure, with the stored unit as secondary context. Stored data remains untouched. Cheap to implement because canonicalizeNonHotelPrice already stores both pricePerPerson and total.
+            </div>
+          </div>
+          <div id="collections-tab4"></div>
+        </div>
+        <div class="decision-panel">
+          <div class="panel-section">
+            <div class="panel-heading">What it is</div>
+            <div class="panel-content">
+              A rendering layer that computes the total for the current party from stored prices and displays it as the primary figure. No data mutation.
+            </div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-heading">Pros</div>
+            <div class="panel-content">
+              <ul>
+                <li>Solves the screenshot comparison problem</li>
+                <li>Works with existing mixed data</li>
+                <li>No data mutation</li>
+                <li>Recomputes live when party size changes</li>
+              </ul>
+            </div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-heading">Cons</div>
+            <div class="panel-content">
+              <ul>
+                <li>Does not prevent new mixed-unit entries</li>
+                <li>Requires rendering logic on every surface</li>
+              </ul>
+            </div>
+          </div>
+          <div class="verdict good">Fixes the screenshot without touching data</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 5 -->
+    <div id="tab5" class="tab-content">
+      <div class="content-layout">
+        <div>
+          <div class="controls">
+            <div class="control-row">
+              <span class="control-label">This trip quotes tour prices as:</span>
+              <select class="select-control" id="trip-unit-select-tab5" onchange="setTripUnit(this.value)">
+                <option value="Total Price">Total for the group (family trip default)</option>
+                <option value="Per person">Per person</option>
+              </select>
+            </div>
+            <div class="control-row">
+              <div class="occupancy-line">
+                <span id="occupancy-line-tab5">2 adults · 2 children · 1 infant, 4 paying</span>
+                <button class="pencil-btn" onclick="openEditCollectionModal('tab5')">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Edit Collection
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="collections-tab5"></div>
+        </div>
+        <div class="decision-panel">
+          <div class="panel-section">
+            <div class="panel-heading">What it is</div>
+            <div class="panel-content">
+              Combine Options B and C: enforce one valid unit at entry via trip-level preference, and render computed party totals as the primary display figure.
+            </div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-heading">Why this works</div>
+            <div class="panel-content">
+              <ul>
+                <li>Trip-level preference prevents new mixed-unit entries</li>
+                <li>Display normalization fixes existing data without mutation</li>
+                <li>Per-person recomputes when party size changes</li>
+                <li>Works uniformly on advisor, member, and AI surfaces</li>
+              </ul>
+            </div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-heading">Prereqs</div>
+            <div class="panel-content">
+              Root causes: <a href="https://linear.app/maestroinc/issue/MOB-774">MOB-774</a> (AI generator writes no unit), <a href="https://linear.app/maestroinc/issue/CON-1476">CON-1476</a> (mobile hardcoded label, unit-only patch derives nothing).
+            </div>
+          </div>
+          <div class="verdict recommended">Recommended</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 6 -->
+    <div id="tab6" class="tab-content">
+      <div class="comparison-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Approach</th>
+              <th>Golf cart option 1<br><span style="font-weight:400;color:var(--maestro-text-tertiary);font-size:11px">(stored: $936.80 / group)</span></th>
+              <th>Golf cart option 3<br><span style="font-weight:400;color:var(--maestro-text-tertiary);font-size:11px">(stored: $309.76 / person)</span></th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <strong><a href="https://linear.app/maestroinc/issue/ENG-833">ENG-833</a> prototype</strong>, Sep 2, 2026.
+    Prereq bugs:
+    <a href="https://linear.app/maestroinc/issue/CON-1476">CON-1476</a> (unit toggle not reflected),
+    <a href="https://linear.app/maestroinc/issue/MOB-774">MOB-774</a> (AI-generated experience ignores unit),
+    <a href="https://linear.app/maestroinc/issue/CON-1405">CON-1405</a> (priceUnit persisted end to end),
+    <a href="https://linear.app/maestroinc/issue/ENG-719">ENG-719</a> (web shows combined stay total only, no per-room split).
+  </footer>
+
+  <!-- Edit Collection Modal -->
+  <div id="modal-backdrop" class="modal-backdrop" onclick="if(event.target===this)closeEditCollectionModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-title">Edit Collection</div>
+        <div class="modal-caption">Mirrors the CollectionOccupancy steppers (<a href="https://linear.app/maestroinc/issue/CON-1298">CON-1298</a>) from the real EditCollectionModal (<a href="https://linear.app/maestroinc/issue/CON-753">CON-753</a>); name and date fields omitted</div>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label class="modal-label">Adults</label>
+          <div class="stepper">
+            <button class="stepper-btn" id="modal-adults-minus" onclick="adjustOccupancy('adults', -1)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            <span class="stepper-value" id="modal-adults">2</span>
+            <button class="stepper-btn" id="modal-adults-plus" onclick="adjustOccupancy('adults', 1)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          </div>
+          <div class="modal-caption" style="margin-top:4px">Min 1</div>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Children</label>
+          <div class="stepper">
+            <button class="stepper-btn" id="modal-children-minus" onclick="adjustOccupancy('children', -1)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            <span class="stepper-value" id="modal-children">2</span>
+            <button class="stepper-btn" id="modal-children-plus" onclick="adjustOccupancy('children', 1)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          </div>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Infants</label>
+          <div class="stepper">
+            <button class="stepper-btn" id="modal-infants-minus" onclick="adjustOccupancy('infants', -1)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+            <span class="stepper-value" id="modal-infants">1</span>
+            <button class="stepper-btn" id="modal-infants-plus" onclick="adjustOccupancy('infants', 1)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+          </div>
+          <div class="modal-caption" style="margin-top:4px">Infants are comped (paying headcount = adults + children)</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeEditCollectionModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveEditCollectionModal()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status dropdown menu (portaled, single shared instance) -->
+  <div id="status-menu">
+    <button class="status-option recommended" onclick="changeStatus('Recommended')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 008.5 14.063l-6.135-1.582a.5.5 0 010-.962L8.5 9.936A2 2 0 009.937 8.5l1.582-6.135a.5.5 0 01.963 0L14.063 8.5A2 2 0 0015.5 9.937l6.135 1.581a.5.5 0 010 .964L15.5 14.063a2 2 0 00-1.437 1.437l-1.582 6.135a.5.5 0 01-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+      Recommended
+    </button>
+    <button class="status-option alternate" onclick="changeStatus('Alternate')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="17 11 21 7 17 3"/><polyline points="7 21 3 17 7 13"/><line x1="21" y1="7" x2="9" y2="7"/><line x1="15" y1="17" x2="3" y2="17"/></svg>
+      Alternate
+    </button>
+    <button class="status-option" style="color:var(--maestro-success)" onclick="changeStatus('Approved')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+      Approved
+    </button>
+    <button class="status-option" style="color:var(--maestro-danger)" onclick="changeStatus('Rejected')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3zm7-13h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg>
+      Rejected
+    </button>
+    <button class="status-option" style="color:var(--maestro-accent)" onclick="changeStatus('Booked')">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3.85 8.62a4 4 0 014.78-4.77 4 4 0 016.74 0 4 4 0 014.78 4.78 4 4 0 010 6.74 4 4 0 01-4.77 4.78 4 4 0 01-6.75 0 4 4 0 01-4.78-4.77 4 4 0 010-6.76z"/><path d="M9 12l2 2 4-4"/></svg>
+      Booked
+    </button>
+  </div>
+
+  <script>
+    // Icons map
+    const ICONS = {
+      gripVertical: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>',
+      calendar: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
+      plus: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+      trash: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>',
+      folderInput: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>',
+      trash2: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
+      eyeOff: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+      eye: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+      chevronLeft: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>',
+      chevronRight: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>',
+      sparkles: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 008.5 14.063l-6.135-1.582a.5.5 0 010-.962L8.5 9.936A2 2 0 009.937 8.5l1.582-6.135a.5.5 0 01.963 0L14.063 8.5A2 2 0 0015.5 9.937l6.135 1.581a.5.5 0 010 .964L15.5 14.063a2 2 0 00-1.437 1.437l-1.582 6.135a.5.5 0 01-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>',
+      arrowLeftRight: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="17 11 21 7 17 3"/><polyline points="7 21 3 17 7 13"/><line x1="21" y1="7" x2="9" y2="7"/><line x1="15" y1="17" x2="3" y2="17"/></svg>',
+      thumbsUp: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3zM7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>',
+      thumbsDown: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3zm7-13h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg>',
+      badgeCheck: '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3.85 8.62a4 4 0 014.78-4.77 4 4 0 016.74 0 4 4 0 014.78 4.78 4 4 0 010 6.74 4 4 0 01-4.77 4.78 4 4 0 01-6.75 0 4 4 0 01-4.78-4.77 4 4 0 010-6.76z"/><path d="M9 12l2 2 4-4"/></svg>'
+    };
+
+    // Mirrors OPTION_STATUS_CONFIG in OptionStatusControl.tsx
+    const STATUS_ICONS = {
+      'Recommended': 'sparkles',
+      'Alternate': 'arrowLeftRight',
+      'Approved': 'thumbsUp',
+      'Rejected': 'thumbsDown',
+      'Booked': 'badgeCheck'
+    };
+
+    // Dataset
+    const DATASET = {
+      collections: [
+        {
+          id: 'golf',
+          name: 'Rome Experiences: City Tour on Golf Carts',
+          date: 'Jun 11',
+          options: [
+            {
+              id: 'golf-1',
+              title: 'Rome Private Guided City Highlights Tour by Golf Cart',
+              priceUnit: 'Per group',
+              priceAmount: 936.80,
+              source: 'Cash',
+              provenance: null,
+              meta: '3 hours',
+              desc: 'Explore Rome\'s historic center on a private golf cart tour, covering more than on foot as you glide past iconic sights and hidden gems.',
+              status: 'Recommended'
+            },
+            {
+              id: 'golf-2',
+              title: 'Rome: City Highlights Luxury Golf Cart Tour',
+              priceUnit: 'Per group',
+              priceAmount: 929.28,
+              provenance: 'Created from AI agent',
+              meta: 'Rome · 3 hours',
+              desc: 'Private city highlights tour by electric golf cart with hotel pick-up and drop-off. 3-hour route includes Piazza del Popolo & Pincio.',
+              status: 'Alternate'
+            },
+            {
+              id: 'golf-3',
+              title: 'Rome Golf Cart Tour with Gelato & Hidden Corners',
+              priceUnit: 'Per person',
+              priceAmount: 309.76,
+              provenance: 'Created from AI agent',
+              meta: 'Rome · 3 hours',
+              desc: 'Discover Rome\'s hidden gems and best gelato spots on this charming golf cart tour. Visit secret piazzas, neighborhood trattorias, and artisan gelaterias off the tourist path.',
+              status: 'Alternate'
+            }
+          ]
+        },
+        {
+          id: 'colosseum',
+          name: 'Rome Experiences: Colosseum & Ancient Rome',
+          date: 'Jun 12',
+          options: [
+            {
+              id: 'col-1',
+              title: 'Colosseum Arena Floor Experience',
+              priceUnit: 'Per person',
+              priceAmount: 185.00,
+              source: 'Cash',
+              provenance: null,
+              meta: 'Rome · 3 hours',
+              desc: 'Walk where gladiators once fought on an exclusive arena floor tour. Includes skip-the-line access to the Colosseum, Roman Forum, and Palatine Hill with a licensed archaeologist guide.',
+              status: 'Recommended'
+            },
+            {
+              id: 'col-2',
+              title: 'Ancient Rome Private Family Tour',
+              priceUnit: 'Total Price',
+              priceAmount: 640.00,
+              provenance: 'Created from AI agent',
+              meta: 'Rome · 4 hours',
+              desc: 'A private family tour of ancient Rome designed for children and adults. Engaging storytelling brings history to life as you explore the Colosseum, Forum, and Palatine Hill together.',
+              status: 'Alternate'
+            }
+          ]
+        }
+      ]
+    };
+
+    // State
+    let state = {
+      occupancy: { adults: 2, children: 2, infants: 1 },
+      modalOccupancy: { adults: 2, children: 2, infants: 1 },
+      currentTab: null,
+      bulkConvert: { active: false, target: null },
+      tripUnit: 'Total Price', // single shared value driving both tab 3 and tab 5 selects
+
+      hiddenOptions: new Set(),
+      optionStatuses: {},
+      statusMenuOpen: null
+    };
+
+    // Helpers
+    function payingHeadcount(occ) {
+      return occ.adults + occ.children;
+    }
+
+    function formatMoney(amount) {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    }
+
+    function priceUnitNoun(unit) {
+      const map = { 'Total Price': 'total', 'Per person': 'person', 'Per group': 'group' };
+      return map[unit] || null;
+    }
+
+    function canonicalize(option, hc) {
+      if (option.priceUnit === 'Per person') {
+        return { perPerson: option.priceAmount, total: option.priceAmount * hc };
+      } else if (option.priceUnit === 'Per group' || option.priceUnit === 'Total Price') {
+        return { perPerson: option.priceAmount / hc, total: option.priceAmount };
+      }
+    }
+
+    function formatPerPersonTotalHint(amount, unit, hc) {
+      if (!isFinite(amount)) return '';
+      if (unit === 'Per person') {
+        const total = amount * hc;
+        return `${formatMoney(total)} total for ${hc} traveler${hc === 1 ? '' : 's'}`;
+      } else if (unit === 'Per group' || unit === 'Total Price') {
+        const perPerson = amount / hc;
+        return `≈ ${formatMoney(perPerson)} / person`;
+      } else {
+        return `stored as ${priceUnitNoun(unit)}`;
+      }
+    }
+
+    function updateTicketPriceHint() {
+      const input = document.getElementById('ticket-price-input');
+      const hint = document.getElementById('ticket-price-hint');
+      if (!input || !hint) return;
+      const raw = input.value.replace(/[$,\s]/g, '');
+      if (raw === '') {
+        hint.textContent = '';
+        return;
+      }
+      const amount = Number(raw);
+      if (!isFinite(amount)) {
+        hint.textContent = 'Enter a valid amount';
+        return;
+      }
+      hint.textContent = formatPerPersonTotalHint(amount, state.tripUnit, payingHeadcount(state.occupancy));
+    }
+
+    function setTripUnit(value) {
+      state.tripUnit = value;
+      const s3 = document.getElementById('trip-unit-select-tab3');
+      const s5 = document.getElementById('trip-unit-select-tab5');
+      if (s3) s3.value = value;
+      if (s5) s5.value = value;
+      const lockedValue = document.getElementById('locked-unit-value');
+      if (lockedValue) lockedValue.textContent = value;
+      renderTab3();
+      renderTab5();
+      updateTicketPriceHint();
+    }
+
+    function occupancySummary() {
+      const o = state.occupancy;
+      return [
+        `${o.adults} adult${o.adults === 1 ? '' : 's'}`,
+        `${o.children} ${o.children === 1 ? 'child' : 'children'}`,
+        `${o.infants} infant${o.infants === 1 ? '' : 's'}`
+      ].join(' · ');
+    }
+
+    function renderOccupancyDisplays() {
+      const hc = payingHeadcount(state.occupancy);
+      document.getElementById('trip-party-line').textContent =
+        `${occupancySummary()}, ${hc} paying traveler${hc === 1 ? '' : 's'} (infants comped)`;
+      const short = `${occupancySummary()}, ${hc} paying`;
+      document.getElementById('occupancy-line-tab4').textContent = short;
+      document.getElementById('occupancy-line-tab5').textContent = short;
+    }
+
+    function showMockToast(message) {
+      const existing = document.querySelector('.toast');
+      if (existing) existing.remove();
+
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const targetTab = tab.dataset.tab;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(targetTab).classList.add('active');
+        state.currentTab = targetTab;
+        renderCurrentTab(); // re-render the newly shown panel so shared state is never stale
+      });
+    });
+
+    // Bulk convert (Tab 2)
+    function bulkConvert(target) {
+      state.bulkConvert = { active: true, target };
+      document.querySelectorAll('.segmented-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.target === target);
+      });
+      renderTab2();
+    }
+
+    function revertBulkConvert() {
+      state.bulkConvert = { active: false, target: null };
+      document.querySelectorAll('.segmented-option').forEach(opt => opt.classList.remove('active'));
+      renderTab2();
+    }
+
+    // Render functions
+    function renderCollection(collection, container, priceLineFn, tabId) {
+      const hc = payingHeadcount(state.occupancy);
+      let html = `
+        <div class="collection" data-collection-id="${collection.id}">
+          <div class="collection-header">
+            <div class="collection-header-left">
+              <div style="width:14px;height:14px;color:var(--maestro-text-tertiary)">${ICONS.gripVertical}</div>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--maestro-text-secondary);flex-shrink:0"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+              <span class="collection-title">${collection.name}</span>
+              <span class="collection-count">${collection.options.length} option${collection.options.length === 1 ? '' : 's'}</span>
+            </div>
+            <div class="collection-header-right">
+              ${tabId === 'tab4' || tabId === 'tab5' ? `
+                <button class="pencil-btn" onclick="openEditCollectionModal('${tabId}')">
+                  <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="width:12px;height:12px"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                </button>
+              ` : ''}
+              <div class="date-pill" onclick="showMockToast('Date picker mock')">
+                <div style="width:12px;height:12px">${ICONS.calendar}</div>
+                ${collection.date}, 2027
+              </div>
+              <button class="icon-btn" onclick="showMockToast('Add option mock')">
+                <div>${ICONS.plus}</div>
+              </button>
+              <button class="icon-btn ghost" onclick="showMockToast('Delete collection mock')">
+                <div style="width:12px;height:12px">${ICONS.trash}</div>
+              </button>
+            </div>
+          </div>
+          <div class="card-strip-wrapper">
+            <div class="card-strip">
+              ${collection.options.map(opt => renderOptionCard(opt, priceLineFn, tabId, hc)).join('')}
+            </div>
+            ${collection.options.length > 1 ? `
+              <div class="scroll-arrows">
+                <button class="scroll-arrow scroll-arrow-left" onclick="scrollCards('${tabId}', '${collection.id}', -1)">
+                  ${ICONS.chevronLeft}
+                </button>
+                <button class="scroll-arrow scroll-arrow-right" onclick="scrollCards('${tabId}', '${collection.id}', 1)">
+                  ${ICONS.chevronRight}
+                </button>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      `;
+      return html;
+    }
+
+    function renderOptionCard(option, priceLineFn, tabId, hc) {
+      const status = state.optionStatuses[option.id] || option.status;
+      const isHidden = state.hiddenOptions.has(option.id);
+      const hiddenClass = isHidden ? 'hidden-card' : '';
+      const decisionClass = status === 'Approved' ? 'approved-card' : status === 'Rejected' ? 'rejected-card' : '';
+      const statusIcon = ICONS[STATUS_ICONS[status]] || ICONS.arrowLeftRight;
+
+      let html = `
+        <div class="option-card ${hiddenClass} ${decisionClass}" data-option-id="${option.id}">
+          <div class="card-image">
+            Image placeholder
+            <div class="image-overlay">
+              <button class="overlay-btn" onclick="showMockToast('Move option mock')">
+                ${ICONS.folderInput}
+              </button>
+              <button class="overlay-btn" onclick="showMockToast('Remove option mock')">
+                ${ICONS.trash2}
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-badges">
+              <div class="badge-group">
+                <span class="badge">EXPERIENCE</span>
+                ${option.source ? `<span class="badge badge-source">${option.source}</span>` : ''}
+              </div>
+              <div class="status-pill ${status.toLowerCase()}" onclick="openStatusMenu(event, '${option.id}')">
+                ${statusIcon}
+                ${status}
+              </div>
+            </div>
+            <div class="card-title">${option.title}</div>
+            ${option.provenance ? `<div class="card-provenance">${option.provenance}</div>` : ''}
+            <div class="card-meta">${option.meta}</div>
+            ${priceLineFn(option, hc)}
+            <div class="card-desc">${option.desc}</div>
+          </div>
+          <div class="card-footer" onclick="showMockToast('View Details mock')">View Details</div>
+          <div class="hide-toggle ${isHidden ? 'hidden-state' : ''}" onclick="toggleHidden('${option.id}')">
+            ${isHidden ? ICONS.eye : ICONS.eyeOff}
+            <span>${isHidden ? 'Show to traveler' : 'Hide from traveler'}</span>
+          </div>
+        </div>
+      `;
+      return html;
+    }
+
+    // Price line functions
+    function priceLineToday(option) {
+      const amount = formatMoney(option.priceAmount);
+      const noun = priceUnitNoun(option.priceUnit);
+      return `<div class="card-price"><span class="price-amount">${amount}</span><span class="price-suffix"> / ${noun}</span></div>`;
+    }
+
+    function priceLineBulk(option, hc) {
+      if (!state.bulkConvert.active) return priceLineToday(option);
+
+      const target = state.bulkConvert.target;
+      let amount, noun, warning = '';
+
+      if (target === 'person') {
+        if (option.priceUnit === 'Per person') {
+          amount = option.priceAmount;
+        } else {
+          amount = option.priceAmount / hc;
+          warning = '<div class="chip warning">Fabricated per-person rate from supplier total</div>';
+        }
+        noun = 'person';
+      } else if (target === 'group') {
+        if (option.priceUnit === 'Per person') {
+          amount = option.priceAmount * hc;
+          warning = `<div class="chip warning">Tied to ${hc} travelers; wrong for other party sizes</div>`;
+        } else {
+          amount = option.priceAmount;
+        }
+        noun = 'group';
+      }
+
+      return `
+        <div class="card-price">
+          <span class="price-amount">${formatMoney(amount)}</span><span class="price-suffix"> / ${noun}</span>
+        </div>
+        ${warning}
+      `;
+    }
+
+    function priceLineEnforced(option, hc) {
+      const tripUnit = state.tripUnit;
+      const amount = formatMoney(option.priceAmount);
+      const noun = priceUnitNoun(option.priceUnit);
+
+      const compatibleUnits = {
+        'Total Price': ['Total Price', 'Per group'],
+        'Per person': ['Per person']
+      };
+
+      const mismatch = !(compatibleUnits[tripUnit] || [tripUnit]).includes(option.priceUnit);
+
+      return `
+        <div class="card-price">
+          <span class="price-amount">${amount}</span><span class="price-suffix"> / ${noun}</span>
+        </div>
+        ${mismatch ? `<div class="chip warning">Unit mismatch, re-enter as ${priceUnitNoun(tripUnit)}</div>` : ''}
+      `;
+    }
+
+    function priceLineNormalized(option, hc) {
+      const canon = canonicalize(option, hc);
+      const primaryAmount = formatMoney(canon.total);
+      const secondaryHint = option.priceUnit === 'Per person'
+        ? `${formatMoney(option.priceAmount)}/person × ${hc}`
+        : option.priceUnit === 'Total Price'
+        ? `stored as ${priceUnitNoun(option.priceUnit)}`
+        : `stored as ${priceUnitNoun(option.priceUnit)}`;
+
+      return `
+        <div class="card-price">
+          <div><span class="price-amount">${primaryAmount}</span><span class="price-suffix"> total for ${hc} travelers</span></div>
+          <div class="price-secondary">${secondaryHint}</div>
+        </div>
+      `;
+    }
+
+    function priceLineHybrid(option, hc) {
+      const tripUnit = state.tripUnit;
+      const canon = canonicalize(option, hc);
+      const primaryAmount = formatMoney(canon.total);
+      const secondaryHint = option.priceUnit === 'Per person'
+        ? `${formatMoney(option.priceAmount)}/person × ${hc}`
+        : option.priceUnit === 'Total Price'
+        ? `stored as ${priceUnitNoun(option.priceUnit)}`
+        : `stored as ${priceUnitNoun(option.priceUnit)}`;
+
+      const compatibleUnits = {
+        'Total Price': ['Total Price', 'Per group'],
+        'Per person': ['Per person']
+      };
+      const mismatch = !(compatibleUnits[tripUnit] || [tripUnit]).includes(option.priceUnit);
+
+      return `
+        <div class="card-price">
+          <div><span class="price-amount">${primaryAmount}</span><span class="price-suffix"> total for ${hc} travelers</span></div>
+          <div class="price-secondary">${secondaryHint}</div>
+        </div>
+        ${mismatch ? `<div class="chip warning">Unit mismatch with trip default</div>` : ''}
+      `;
+    }
+
+    // Render tabs
+    function renderTab1() {
+      const container = document.getElementById('collections-tab1');
+      container.innerHTML = DATASET.collections.map(c => renderCollection(c, container, priceLineToday, 'tab1')).join('');
+      wireCardStrips('tab1');
+
+      // Derived figures computed from the dataset, never hard-coded
+      const hc = payingHeadcount(state.occupancy);
+      const golf1 = DATASET.collections[0].options[0];
+      const golf3 = DATASET.collections[0].options[2];
+      const golf1Total = canonicalize(golf1, hc).total;
+      const golf3Total = canonicalize(golf3, hc).total;
+      const pct = Math.round((golf3Total / golf1Total - 1) * 100);
+      document.getElementById('tab1-problem-text').textContent =
+        `The "${golf3.title}" option (${golf3.priceUnit} ${formatMoney(golf3.priceAmount)}) reads as the cheapest on the card. ` +
+        `For ${hc} paying traveler${hc === 1 ? '' : 's'} it totals ${formatMoney(golf3Total)}, ${pct}% more expensive than the ` +
+        `${formatMoney(golf1Total)} Recommended option. Members cannot compare without manual multiplication.`;
+    }
+
+    function renderTab2() {
+      const container = document.getElementById('collections-tab2');
+      container.innerHTML = DATASET.collections.map(c => renderCollection(c, container, priceLineBulk, 'tab2')).join('');
+      wireCardStrips('tab2');
+    }
+
+    function renderTab3() {
+      const container = document.getElementById('collections-tab3');
+      container.innerHTML = DATASET.collections.map(c => renderCollection(c, container, priceLineEnforced, 'tab3')).join('');
+      wireCardStrips('tab3');
+    }
+
+    function renderTab4() {
+      const container = document.getElementById('collections-tab4');
+      container.innerHTML = DATASET.collections.map(c => renderCollection(c, container, priceLineNormalized, 'tab4')).join('');
+      wireCardStrips('tab4');
+    }
+
+    function renderTab5() {
+      const container = document.getElementById('collections-tab5');
+      container.innerHTML = DATASET.collections.map(c => renderCollection(c, container, priceLineHybrid, 'tab5')).join('');
+      wireCardStrips('tab5');
+    }
+
+    function renderTab6() {
+      const hc = payingHeadcount(state.occupancy);
+      const golf1 = DATASET.collections[0].options[0];
+      const golf3 = DATASET.collections[0].options[2];
+
+      const rows = [
+        {
+          label: 'Today (problem)',
+          golf1: `<span class="price-amount">${formatMoney(golf1.priceAmount)}</span><div class="price-suffix">/ ${priceUnitNoun(golf1.priceUnit)}</div>`,
+          golf3: `<span class="price-amount">${formatMoney(golf3.priceAmount)}</span><div class="price-suffix">/ ${priceUnitNoun(golf3.priceUnit)}</div>`,
+          note: 'Per-person option reads cheapest, costs most'
+        },
+        {
+          label: 'Option A<br><span style="font-weight:400;font-size:11px">(bulk convert to per group)</span>',
+          golf1: `<span class="price-amount">${formatMoney(golf1.priceAmount)}</span><div class="price-suffix">/ group</div>`,
+          golf3: `<span class="price-amount">${formatMoney(golf3.priceAmount * hc)}</span><div class="price-suffix">/ group</div><div class="chip warning" style="margin-top:4px">Tied to ${hc} travelers</div>`,
+          note: 'Fabricates group prices from per-person rates'
+        },
+        {
+          label: 'Option B<br><span style="font-weight:400;font-size:11px">(trip-level unit)</span>',
+          golf1: `<span class="price-amount">${formatMoney(golf1.priceAmount)}</span><div class="price-suffix">/ ${priceUnitNoun(golf1.priceUnit)}</div>`,
+          golf3: `<span class="price-amount">${formatMoney(golf3.priceAmount)}</span><div class="price-suffix">/ ${priceUnitNoun(golf3.priceUnit)}</div><div class="chip warning" style="margin-top:4px">Unit mismatch</div>`,
+          note: 'Prevents new mixed entries but does not fix existing'
+        },
+        {
+          label: 'Option C<br><span style="font-weight:400;font-size:11px">(display normalization)</span>',
+          golf1: `<span class="price-amount">${formatMoney(golf1.priceAmount)}</span><div class="price-suffix">total for ${hc} travelers</div><div class="price-secondary">stored as ${priceUnitNoun(golf1.priceUnit)}</div>`,
+          golf3: `<span class="price-amount">${formatMoney(golf3.priceAmount * hc)}</span><div class="price-suffix">total for ${hc} travelers</div><div class="price-secondary">${formatMoney(golf3.priceAmount)}/person × ${hc}</div>`,
+          note: 'Both read as party totals; stored data untouched'
+        },
+        {
+          label: 'Hybrid (B + C)<br><span style="font-weight:400;font-size:11px">(recommended)</span>',
+          golf1: `<span class="price-amount">${formatMoney(golf1.priceAmount)}</span><div class="price-suffix">total for ${hc} travelers</div><div class="price-secondary">stored as ${priceUnitNoun(golf1.priceUnit)}</div>`,
+          golf3: `<span class="price-amount">${formatMoney(golf3.priceAmount * hc)}</span><div class="price-suffix">total for ${hc} travelers</div><div class="price-secondary">${formatMoney(golf3.priceAmount)}/person × ${hc}</div>`,
+          note: 'Display normalization + entry enforcement'
+        }
+      ];
+
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = rows.map(row => `
+        <tr>
+          <td class="approach-cell">${row.label}</td>
+          <td style="font-size:12px">${row.golf1}</td>
+          <td style="font-size:12px">${row.golf3}</td>
+          <td style="color:var(--maestro-text-secondary);font-size:11px">${row.note}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Scroll cards (scoped to the tab the arrows live in; every collection renders once per tab)
+    function scrollCards(tabId, collectionId, direction) {
+      const strip = document.querySelector(`#${tabId} [data-collection-id="${collectionId}"] .card-strip`);
+      if (!strip) return;
+      const scrollAmount = 264;
+      strip.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+    }
+
+    // Track scroll bounds so arrows disable at the ends (mirrors useScrollCarousel)
+    function wireCardStrips(tabId) {
+      document.querySelectorAll(`#${tabId} [data-collection-id]`).forEach(block => {
+        const strip = block.querySelector('.card-strip');
+        const left = block.querySelector('.scroll-arrow-left');
+        const right = block.querySelector('.scroll-arrow-right');
+        if (!strip || !left || !right) return;
+        const update = () => {
+          left.disabled = strip.scrollLeft <= 0;
+          right.disabled = strip.scrollLeft + strip.clientWidth >= strip.scrollWidth - 1;
+        };
+        strip.addEventListener('scroll', update);
+        update();
+      });
+    }
+
+    // Hide toggle
+    function toggleHidden(optionId) {
+      if (state.hiddenOptions.has(optionId)) {
+        state.hiddenOptions.delete(optionId);
+      } else {
+        state.hiddenOptions.add(optionId);
+      }
+      renderAllTabs();
+    }
+
+    // Status dropdown
+    function openStatusMenu(event, optionId) {
+      event.stopPropagation();
+      const menu = document.getElementById('status-menu');
+      const rect = event.currentTarget.getBoundingClientRect();
+      menu.style.top = rect.bottom + 4 + 'px';
+      menu.style.left = rect.left + 'px';
+      menu.classList.add('open');
+      state.statusMenuOpen = optionId;
+    }
+
+    function changeStatus(newStatus) {
+      if (state.statusMenuOpen) {
+        state.optionStatuses[state.statusMenuOpen] = newStatus;
+        document.getElementById('status-menu').classList.remove('open');
+        state.statusMenuOpen = null;
+        renderAllTabs();
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.status-pill') && !e.target.closest('#status-menu')) {
+        document.getElementById('status-menu').classList.remove('open');
+        state.statusMenuOpen = null;
+      }
+    });
+
+    // Escape closes the status menu, and discards + closes the modal
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      const menu = document.getElementById('status-menu');
+      if (menu.classList.contains('open')) {
+        menu.classList.remove('open');
+        state.statusMenuOpen = null;
+      }
+      if (document.getElementById('modal-backdrop').classList.contains('open')) {
+        closeEditCollectionModal();
+      }
+    });
+
+    // Edit Collection Modal
+    function openEditCollectionModal(tabId) {
+      state.currentTab = tabId;
+      state.modalOccupancy = { ...state.occupancy };
+      document.getElementById('modal-adults').textContent = state.modalOccupancy.adults;
+      document.getElementById('modal-children').textContent = state.modalOccupancy.children;
+      document.getElementById('modal-infants').textContent = state.modalOccupancy.infants;
+      updateStepperButtons();
+      document.getElementById('modal-backdrop').classList.add('open');
+    }
+
+    // Real rule (EditCollectionModal.tsx / trip.ts): each stepper's max is the REMAINING
+    // capacity against MAX_PARTY_SIZE across all three buckets, not a fixed per-bucket cap.
+    const MAX_PARTY_SIZE = 50;
+
+    function partyTotal(occ) {
+      return occ.adults + occ.children + occ.infants;
+    }
+
+    function updateStepperButtons() {
+      const remaining = MAX_PARTY_SIZE - partyTotal(state.modalOccupancy);
+      ['adults', 'children', 'infants'].forEach(field => {
+        const min = field === 'adults' ? 1 : 0;
+        const value = state.modalOccupancy[field];
+        document.getElementById(`modal-${field}-minus`).disabled = value <= min;
+        document.getElementById(`modal-${field}-plus`).disabled = remaining <= 0;
+      });
+    }
+
+    function closeEditCollectionModal() {
+      document.getElementById('modal-backdrop').classList.remove('open');
+    }
+
+    function adjustOccupancy(field, delta) {
+      const min = field === 'adults' ? 1 : 0;
+      const current = state.modalOccupancy[field];
+      const remaining = MAX_PARTY_SIZE - partyTotal(state.modalOccupancy);
+      const max = current + Math.max(0, remaining);
+      const newValue = Math.max(min, Math.min(max, current + delta));
+      state.modalOccupancy[field] = newValue;
+      document.getElementById(`modal-${field}`).textContent = newValue;
+      updateStepperButtons();
+    }
+
+    function saveEditCollectionModal() {
+      state.occupancy = { ...state.modalOccupancy };
+      closeEditCollectionModal();
+      renderAllTabs(); // occupancy drives totals everywhere: all tabs + trip strip + occupancy lines
+      const hc = payingHeadcount(state.occupancy);
+      showMockToast(`Party updated to ${state.occupancy.adults}A · ${state.occupancy.children}C · ${state.occupancy.infants}I (${hc} paying)`);
+    }
+
+    function renderCurrentTab() {
+      if (state.currentTab === 'tab1') renderTab1();
+      else if (state.currentTab === 'tab2') renderTab2();
+      else if (state.currentTab === 'tab3') renderTab3();
+      else if (state.currentTab === 'tab4') renderTab4();
+      else if (state.currentTab === 'tab5') renderTab5();
+      else if (state.currentTab === 'tab6') renderTab6();
+    }
+
+    function renderAllTabs() {
+      renderTab1();
+      renderTab2();
+      renderTab3();
+      renderTab4();
+      renderTab5();
+      renderTab6();
+      renderOccupancyDisplays();
+      updateTicketPriceHint();
+    }
+
+    // Initial render
+    state.currentTab = 'tab1';
+    renderAllTabs();
+  </script>
+</body>
+</html>
