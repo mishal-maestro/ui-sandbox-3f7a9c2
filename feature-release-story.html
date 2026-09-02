@@ -152,6 +152,14 @@
     border: none; background: #1a1d26; color: #fff; border-radius: 999px; padding: 10px 20px; cursor: pointer;
   }
   .controls button.play:hover { background: #30343f; }
+  .controls button.voice {
+    font: inherit; font-size: 13px; font-weight: 600;
+    border: 1px solid #d7dae2; background: #fff; color: #1a1d26;
+    border-radius: 999px; padding: 9px 16px; cursor: pointer;
+  }
+  .controls button.voice:hover:not(:disabled) { border-color: #b3b8c4; }
+  .controls button.voice.on { background: #1a1d26; color: #fff; border-color: #1a1d26; }
+  .controls button.voice:disabled { opacity: .4; cursor: default; }
   .time { font-size: 12.5px; font-weight: 600; color: #6b7080; font-variant-numeric: tabular-nums; }
   .trackwrap { position: relative; flex: 1 1 320px; height: 26px; }
   input[type=range] {
@@ -277,6 +285,7 @@
 
   <div class="controls">
     <button class="play" id="btnPlay">&#9654;&nbsp; Play</button>
+    <button class="voice" id="btnVoice" aria-pressed="false">Voice: off</button>
     <span class="time" id="time">0:00 / 0:00</span>
     <div class="trackwrap">
       <div id="fill"></div>
@@ -285,7 +294,7 @@
   </div>
   <div class="chapters" id="chaps"></div>
 
-  <div class="note">People in this story: Kalpa, Thiranjaya and Yasiru (Conductor squad), Chathura (QA), Kenny (UAT owner), Kallie (Ops tester). Keyboard: space = play/pause, arrow keys = previous/next chapter.</div>
+  <div class="note">People in this story: Kalpa, Thiranjaya and Yasiru (Conductor squad), Chathura (QA), Kenny (UAT owner), Kallie (Ops tester). Keyboard: space = play/pause, arrow keys = previous/next chapter. Voice uses your computer's built-in speech (no downloads); it sounds best in Edge, and playback slows slightly while it is on.</div>
 </div>
 
 <script>
@@ -488,7 +497,11 @@
 
     // caption
     var capEl = document.getElementById("cap");
-    if (cap !== lastCap) { capEl.textContent = cap; lastCap = cap; }
+    if (cap !== lastCap) {
+      capEl.textContent = cap;
+      lastCap = cap;
+      if (playing && cap) speak(cap);
+    }
     capEl.style.opacity = cap ? 1 : 0;
 
     // controls
@@ -506,6 +519,33 @@
     return i;
   }
 
+  // ---- optional voiceover: browser speech synthesis (free, no assets) ----
+  var voiceOn = false, chosenVoice = null, RATE = 1;
+  function pickVoice() {
+    if (!window.speechSynthesis) return null;
+    var en = speechSynthesis.getVoices().filter(function (v) { return /^en/i.test(v.lang); });
+    var pref = ["Natural", "Online", "Aria", "Jenny", "Guy", "Google US English", "Zira", "Samantha"];
+    for (var i = 0; i < pref.length; i++) {
+      for (var j = 0; j < en.length; j++) {
+        if (en[j].name.indexOf(pref[i]) !== -1) return en[j];
+      }
+    }
+    return en[0] || null;
+  }
+  if (window.speechSynthesis) {
+    chosenVoice = pickVoice();
+    speechSynthesis.onvoiceschanged = function () { if (!chosenVoice) chosenVoice = pickVoice(); };
+  }
+  function speak(text) {
+    if (!voiceOn || !window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    if (chosenVoice) u.voice = chosenVoice;
+    u.rate = 1.05;
+    speechSynthesis.speak(u);
+  }
+  function hush() { if (window.speechSynthesis) speechSynthesis.cancel(); }
+
   // ---- clock (rAF + timer fallback, proven on the BPMN page) ----
   var playing = false, t = 0, anchorWall = 0, anchorT = 0, gen = 0;
   function play() {
@@ -513,10 +553,10 @@
     playing = true; anchorWall = performance.now(); anchorT = t; gen++;
     syncBtn(); pump(gen);
   }
-  function pause() { playing = false; syncBtn(); }
+  function pause() { playing = false; hush(); syncBtn(); }
   function pump(my) {
     if (!playing || my !== gen) return;
-    t = anchorT + (performance.now() - anchorWall) / 1000;
+    t = anchorT + ((performance.now() - anchorWall) / 1000) * RATE;
     if (t >= DURATION) { t = DURATION; playing = false; syncBtn(); seek(t); return; }
     seek(t);
     var fired = false;
@@ -529,10 +569,27 @@
   function jumpTo(sec) {
     t = Math.max(0, Math.min(DURATION, sec));
     anchorWall = performance.now(); anchorT = t;
+    hush();
     seek(t); syncBtn();
   }
 
   document.getElementById("btnPlay").addEventListener("click", function () { playing ? pause() : play(); });
+  var btnVoice = document.getElementById("btnVoice");
+  if (!window.speechSynthesis) {
+    btnVoice.disabled = true;
+    btnVoice.textContent = "Voice unavailable";
+  } else {
+    btnVoice.addEventListener("click", function () {
+      voiceOn = !voiceOn;
+      RATE = voiceOn ? 0.85 : 1; // give spoken lines room to finish
+      anchorWall = performance.now(); anchorT = t;
+      btnVoice.classList.toggle("on", voiceOn);
+      btnVoice.setAttribute("aria-pressed", String(voiceOn));
+      btnVoice.textContent = voiceOn ? "Voice: on" : "Voice: off";
+      if (!voiceOn) hush();
+      else if (playing && lastCap) speak(lastCap);
+    });
+  }
   var track = document.getElementById("track");
   track.addEventListener("input", function () { playing = false; gen++; jumpTo((track.value / 1000) * DURATION); });
   document.addEventListener("keydown", function (e) {
