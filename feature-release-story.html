@@ -224,7 +224,7 @@
         <div class="checks">
           <div id="ck1"><span class="bx"></span>UAT signoff (Kallie)</div>
           <div id="ck2"><span class="bx"></span>Team training</div>
-          <div id="ck3"><span class="bx"></span>Release notes drafted</div>
+          <div id="ck3"><span class="bx"></span>Team guide (if needed)</div>
         </div>
       </div>
 
@@ -275,7 +275,7 @@
       <div class="msgs">
         <div class="msg" id="m1"><span class="av" style="background:#1a1d26;">RB</span><div class="body"><span class="nm">Release Bot</span><span class="tm">02:10</span><br>Code-complete candidate: <b>Ops workflow revamp</b> &middot; <code>release-ops-workflow-revamp</code> &middot; all sub-tasks merged. Confirm, <span class="mn">@Yasiru</span>?</div></div>
         <div class="msg" id="m2"><span class="av" style="background:#1a1d26;">RB</span><div class="body"><span class="nm">Release Bot</span><span class="tm">14:02</span><br>Ready for UAT: <b>Ops workflow revamp</b> &middot; flag is now ON for UAT testers. Over to you, <span class="mn">@Kenny</span> <span class="mn">@Kallie</span></div></div>
-        <div class="msg" id="m3"><span class="av" style="background:#1a1d26;">RB</span><div class="body"><span class="nm">Release Bot</span><span class="tm">09:41</span><br>Shipped: <b>Ops workflow revamp</b> is live for everyone. Release notes posted by <span class="mn">@Kenny</span>.</div></div>
+        <div class="msg" id="m3"><span class="av" style="background:#1a1d26;">RB</span><div class="body"><span class="nm">Release Bot</span><span class="tm">09:41</span><br>Shipped: <b>Ops workflow revamp</b> is live for everyone. Epic closed automatically at 100%.</div></div>
       </div>
     </div>
 
@@ -382,19 +382,19 @@
     { t: 76.6, type: "cap", text: "Kallie tests real ops scenarios in production. Everyone else still sees nothing." },
     { t: 79.6, type: "checks" },
     { t: 80.2, type: "tick", id: "ck1" },
-    { t: 80.4, type: "cap", text: "Signoff, team training, release notes: the changelog agent drafts them, Kenny edits. Publishing waits for launch." },
+    { t: 80.4, type: "cap", text: "Signoff, team training, and a short guide for the team if the feature needs one. All manual, all Kenny's." },
     { t: 81.8, type: "tick", id: "ck2" },
     { t: 83.4, type: "tick", id: "ck3" },
     { t: 84.6, type: "cap", text: "UAT signed off. Now, and only now, comes the launch." },
 
     // ch6 Launch
     { t: 88.0, type: "ramp", pct: 1 },
-    { t: 88.4, type: "cap", text: "The rollout ramp IS the launch: 1, then 10, then 50, then 100 percent of everyone." },
+    { t: 88.4, type: "cap", text: "The rollout ramp IS the launch: Kenny takes the flag to 1, then 10, then 50, then 100 percent - in PostHog." },
     { t: 90.0, type: "ramp", pct: 10 },
     { t: 92.2, type: "ramp", pct: 50 },
     { t: 94.4, type: "ramp", pct: 100 },
     { t: 96.2, type: "move", card: "epic", col: 4, slot: 0, dur: 1.3 },
-    { t: 96.6, type: "cap", text: "At 100 percent the epic closes. That is GA: the feature is live for everyone." },
+    { t: 96.6, type: "cap", text: "At 100 percent the epic closes by itself - nobody has to touch Linear. That is GA: live for everyone." },
     { t: 98.8, type: "toast", id: "t6", until: 101.8 },
     { t: 99.4, type: "msg", id: "m3" },
     { t: 101.0, type: "cap", text: "One epic told the whole story: built, tested, signed off, launched. That is the feature release lifecycle." }
