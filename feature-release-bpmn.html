@@ -41,7 +41,7 @@
   }
   .cta .btn:hover { background: #30343f; }
   .sub { font-size: 14px; color: #4c5160; margin-bottom: 14px; }
-  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; font-size: 12px; color: #4c5160; align-items: center; }
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 12px; font-size: 12px; color: #4c5160; align-items: center; }
   .legend span { display: inline-flex; align-items: center; gap: 6px; }
   .sw { width: 14px; height: 14px; border-radius: 3px; display: inline-block; }
   .scroll { overflow-x: auto; border: 1px solid #eef0f5; border-radius: 10px; }
@@ -56,6 +56,65 @@
   .gw-sub { font-size: 11px; fill: #6b7080; }
   .branch { font-size: 11px; font-weight: 600; fill: #6b7080; }
   .ev-label { font-size: 11.5px; fill: #4c5160; }
+
+  /* ---- walkthrough controls ---- */
+  .controls { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .controls button {
+    font: inherit; font-size: 13px; font-weight: 600;
+    border: 1px solid #d7dae2; background: #ffffff; color: #1a1d26;
+    border-radius: 999px; padding: 8px 18px; cursor: pointer;
+  }
+  .controls button:hover:not(:disabled) { border-color: #b3b8c4; background: #fbfbfd; }
+  .controls button.primary { background: #1a1d26; color: #ffffff; border-color: #1a1d26; min-width: 96px; }
+  .controls button.primary:hover:not(:disabled) { background: #30343f; }
+  .controls button:disabled { opacity: .35; cursor: default; }
+  .caption { font-size: 13px; color: #4c5160; flex: 1 1 300px; min-height: 20px; }
+  .caption b { color: #1a1d26; }
+  .caption .stepno { color: #9095a3; font-weight: 600; margin-right: 8px; }
+
+  /* ---- animation states ---- */
+  .pnode, .sysbox, .pconn, .sysconn { transition: opacity .35s ease; }
+  svg.playing .pnode, svg.playing .pconn, svg.playing .sysbox, svg.playing .sysconn,
+  svg.playing .ev-label { opacity: .15; }
+  svg.playing .visited { opacity: .55; }
+  svg.playing .active, svg.playing .fired, svg.playing .flash { opacity: 1; }
+
+  .pnode rect, .pnode polygon, .pnode circle { transition: filter .3s ease; }
+  svg.playing .pnode.active > rect,
+  svg.playing .pnode.active > polygon,
+  svg.playing .pnode.active > circle { filter: url(#glow); }
+
+  .pconn line, .pconn path { transition: stroke .3s ease; }
+  svg.playing .pconn.active line, svg.playing .pconn.active path { stroke: #1a1d26; stroke-width: 2; }
+  svg.playing .pconn.visited line, svg.playing .pconn.visited path { stroke: #30343f; }
+  svg.playing .pconn.flash line, svg.playing .pconn.flash path { stroke: #ba7517; stroke-width: 1.8; }
+
+  .sysbox rect { transition: stroke .3s ease, fill .3s ease; }
+  svg .sysbox.fired rect { stroke: #4ea7fc; fill: #f4f9ff; }
+  svg.playing .sysconn.fired line { stroke: #4ea7fc; }
+
+  #token { opacity: 0; transition: opacity .2s ease; pointer-events: none; }
+  #token.on { opacity: 1; }
+
+  /* ---- ambient flow pulses (idle only) ---- */
+  .flowline {
+    fill: none; stroke: #4ea7fc; stroke-width: 2.5; stroke-linecap: round;
+    stroke-dasharray: 7 15; opacity: .55; pointer-events: none;
+  }
+  svg.playing .flowline { display: none; }
+  @media (prefers-reduced-motion: no-preference) {
+    .flowline { animation: flowmove 1.3s linear infinite; }
+    svg:not(.playing) .sysconn line { animation: sysmarch 7s linear infinite; }
+    svg.playing .sysconn.fired line { animation: sysmarch 1.2s linear infinite; }
+    svg.playing .pconn.flash line, svg.playing .pconn.flash path {
+      stroke-dasharray: 6 5; animation: sysmarch 1.2s linear infinite;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .flowline { display: none; }
+  }
+  @keyframes flowmove { to { stroke-dashoffset: -22; } }
+  @keyframes sysmarch { to { stroke-dashoffset: -18; } }
 </style>
 </head>
 <body>
@@ -73,12 +132,24 @@
     <span><span class="sw" style="background:#fff;border:3px solid #ef4444;border-radius:50%;"></span>GA</span>
     <span style="color:#6b7080;">dashed arrow = system effect &middot; solid arrow = process flow</span>
   </div>
-  <div class="scroll">
-  <svg width="1720" height="780" viewBox="0 0 1720 780" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Swimlane process diagram of the feature release lifecycle across squad engineering, QA, UAT owner, Linear and PostHog">
+
+  <div class="controls" role="group" aria-label="Step-by-step walkthrough">
+    <button id="btnPlay" class="primary" aria-label="Play the walkthrough">&#9654;&nbsp; Play</button>
+    <button id="btnPrev" aria-label="Previous step" disabled>&#8592; Back</button>
+    <button id="btnNext" aria-label="Next step">Step &#8594;</button>
+    <button id="btnReset" aria-label="Reset the walkthrough" disabled>Reset</button>
+    <div class="caption" id="caption" aria-live="polite">Press <b>Play</b> to walk the flow step by step, or use <b>Step</b> to advance at your own pace.</div>
+  </div>
+
+  <div class="scroll" id="scrollbox">
+  <svg id="diagram" width="1720" height="780" viewBox="0 0 1720 780" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Swimlane process diagram of the feature release lifecycle across squad engineering, QA, UAT owner, Linear and PostHog">
     <defs>
       <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
         <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
       </marker>
+      <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+        <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#4ea7fc" flood-opacity="0.6"/>
+      </filter>
     </defs>
 
     <rect x="40" y="50" width="1650" height="710" fill="#ffffff" stroke="#d7dae2" stroke-width="1"/>
@@ -111,125 +182,147 @@
     <text x="70" y="697" class="lane-label">PostHog</text>
     <text x="70" y="715" class="lane-sub">feature flags</text>
 
-    <circle cx="210" cy="135" r="15" fill="#ffffff" stroke="#4cb782" stroke-width="2"/>
-    <text x="210" y="172" class="ev-label" text-anchor="middle">Epic + flag plan</text>
+    <g id="n-start" class="pnode">
+      <circle cx="210" cy="135" r="15" fill="#ffffff" stroke="#4cb782" stroke-width="2"/>
+      <text x="210" y="172" class="ev-label" text-anchor="middle">Epic + flag plan</text>
+    </g>
 
-    <g>
+    <g id="n-dev" class="pnode">
       <rect x="255" y="107" width="170" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
       <rect x="255" y="107" width="4" height="56" fill="#4ea7fc"/>
       <text x="268" y="130" class="t-title">Dev sub-issues built</text>
       <text x="268" y="148" class="t-sub">merge behind the flag</text>
     </g>
 
-    <text x="490" y="82" class="gw-label" text-anchor="middle">code-complete?</text>
-    <text x="490" y="97" class="gw-sub" text-anchor="middle">eng lead declares</text>
-    <polygon points="490,105 520,135 490,165 460,135" fill="#fff7e8" stroke="#ba7517" stroke-width="1.3"/>
+    <g id="gw-cc" class="pnode">
+      <text x="490" y="82" class="gw-label" text-anchor="middle">code-complete?</text>
+      <text x="490" y="97" class="gw-sub" text-anchor="middle">eng lead declares</text>
+      <polygon points="490,105 520,135 490,165 460,135" fill="#fff7e8" stroke="#ba7517" stroke-width="1.3"/>
+    </g>
 
-    <g>
+    <g id="n-fix" class="pnode">
       <rect x="730" y="107" width="160" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
       <rect x="730" y="107" width="4" height="56" fill="#4ea7fc"/>
       <text x="743" y="130" class="t-title">Fix findings</text>
       <text x="743" y="148" class="t-sub">new bug tickets</text>
     </g>
 
-    <g>
+    <g id="n-e2e" class="pnode">
       <rect x="560" y="267" width="180" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
       <rect x="560" y="267" width="4" height="56" fill="#f2994a"/>
       <text x="573" y="290" class="t-title">Feature E2E pass</text>
       <text x="573" y="308" class="t-sub">on the internal cohort</text>
     </g>
 
-    <polygon points="810,265 840,295 810,325 780,295" fill="#fff7e8" stroke="#ba7517" stroke-width="1.3"/>
-    <text x="810" y="348" class="gw-label" text-anchor="middle">pass?</text>
+    <g id="gw-pass" class="pnode">
+      <polygon points="810,265 840,295 810,325 780,295" fill="#fff7e8" stroke="#ba7517" stroke-width="1.3"/>
+      <text x="810" y="348" class="gw-label" text-anchor="middle">pass?</text>
+    </g>
 
-    <g>
+    <g id="n-uat-move" class="pnode">
       <rect x="890" y="267" width="190" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
       <rect x="890" y="267" width="4" height="56" fill="#f2994a"/>
       <text x="903" y="290" class="t-title">Move epic to UAT</text>
       <text x="903" y="308" class="t-sub">assign the UAT owner</text>
     </g>
 
-    <g>
+    <g id="n-signoff" class="pnode">
       <rect x="1140" y="417" width="180" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
       <rect x="1140" y="417" width="4" height="56" fill="#8b5cf6"/>
       <text x="1153" y="440" class="t-title">Signoff, training, notes</text>
       <text x="1153" y="458" class="t-sub">changelog agent drafts</text>
     </g>
 
-    <polygon points="1390,415 1420,445 1390,475 1360,445" fill="#fff7e8" stroke="#ba7517" stroke-width="1.3"/>
-    <text x="1390" y="498" class="gw-label" text-anchor="middle">launch?</text>
+    <g id="gw-launch" class="pnode">
+      <polygon points="1390,415 1420,445 1390,475 1360,445" fill="#fff7e8" stroke="#ba7517" stroke-width="1.3"/>
+      <text x="1390" y="498" class="gw-label" text-anchor="middle">launch?</text>
+    </g>
 
-    <g>
+    <g id="n-launch" class="pnode">
       <rect x="1450" y="417" width="170" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
       <rect x="1450" y="417" width="4" height="56" fill="#8b5cf6"/>
       <text x="1463" y="440" class="t-title">Launch: ramp to 100%</text>
       <text x="1463" y="458" class="t-sub">close epic + cleanup</text>
     </g>
 
-    <circle cx="1655" cy="445" r="15" fill="#ffffff" stroke="#ef4444" stroke-width="3"/>
-    <text x="1655" y="482" class="ev-label" text-anchor="middle">GA</text>
+    <g id="n-end" class="pnode">
+      <circle cx="1655" cy="445" r="15" fill="#ffffff" stroke="#ef4444" stroke-width="3"/>
+      <text x="1655" y="482" class="ev-label" text-anchor="middle">GA</text>
+    </g>
 
-    <g>
+    <g id="s-subdone" class="sysbox">
       <rect x="250" y="560" width="170" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
       <text x="335" y="580" class="s-text" text-anchor="middle">Sub-issues &#8594; Done</text>
       <text x="335" y="596" class="s-sub" text-anchor="middle">at merge, as today</text>
     </g>
-    <g>
+    <g id="s-readyqa" class="sysbox">
       <rect x="450" y="560" width="170" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
       <text x="535" y="580" class="s-text" text-anchor="middle">Epic &#8594; Ready for QA</text>
       <text x="535" y="596" class="s-sub" text-anchor="middle">the code-complete state</text>
     </g>
-    <g>
+    <g id="s-uat" class="sysbox">
       <rect x="890" y="560" width="190" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
       <text x="985" y="580" class="s-text" text-anchor="middle">Epic &#8594; UAT</text>
       <text x="985" y="596" class="s-sub" text-anchor="middle">inbox ping to the owner</text>
     </g>
-    <g>
+    <g id="s-done" class="sysbox">
       <rect x="1400" y="560" width="190" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
       <text x="1495" y="580" class="s-text" text-anchor="middle">Epic &#8594; Done</text>
       <text x="1495" y="596" class="s-sub" text-anchor="middle">cleanup ticket created</text>
     </g>
 
-    <g>
+    <g id="s-flag" class="sysbox">
       <rect x="250" y="680" width="170" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
       <text x="335" y="700" class="s-text" text-anchor="middle">Flag created</text>
       <text x="335" y="716" class="s-sub" text-anchor="middle">live at 0-1%</text>
     </g>
-    <g>
+    <g id="s-cohort" class="sysbox">
       <rect x="560" y="680" width="170" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
       <text x="645" y="700" class="s-text" text-anchor="middle">Internal cohort only</text>
       <text x="645" y="716" class="s-sub" text-anchor="middle">staff + QA accounts</text>
     </g>
-    <g>
+    <g id="s-ramp" class="sysbox">
       <rect x="1500" y="680" width="140" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
       <text x="1570" y="700" class="s-text" text-anchor="middle">Member ramp</text>
       <text x="1570" y="716" class="s-sub" text-anchor="middle">1 &#8594; 10 &#8594; 50 &#8594; 100%</text>
     </g>
 
-    <line x1="225" y1="135" x2="251" y2="135" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
-    <line x1="425" y1="135" x2="456" y2="135" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
-    <path d="M490 165 V295 H556" fill="none" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
-    <text x="502" y="215" class="branch">yes</text>
-    <line x1="740" y1="295" x2="776" y2="295" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
-    <line x1="840" y1="295" x2="886" y2="295" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
-    <text x="852" y="288" class="branch">yes</text>
-    <line x1="810" y1="265" x2="810" y2="167" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
-    <text x="818" y="225" class="branch">no</text>
-    <path d="M730 135 H690 V263" fill="none" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
-    <path d="M1080 295 H1110 V445 H1136" fill="none" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
-    <line x1="1320" y1="445" x2="1356" y2="445" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
-    <line x1="1420" y1="445" x2="1446" y2="445" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
-    <text x="1425" y="438" class="branch">yes</text>
-    <path d="M1390 415 V385 H1230 V413" fill="none" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
-    <text x="1298" y="379" class="branch">hold</text>
-    <line x1="1620" y1="445" x2="1636" y2="445" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+    <g id="c1" class="pconn"><line x1="225" y1="135" x2="251" y2="135" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/></g>
+    <g id="c2" class="pconn"><line x1="425" y1="135" x2="456" y2="135" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/></g>
+    <g id="c3" class="pconn">
+      <path d="M490 165 V295 H556" fill="none" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+      <text x="502" y="215" class="branch">yes</text>
+    </g>
+    <g id="c4" class="pconn"><line x1="740" y1="295" x2="776" y2="295" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/></g>
+    <g id="c5" class="pconn">
+      <line x1="840" y1="295" x2="886" y2="295" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+      <text x="852" y="288" class="branch">yes</text>
+    </g>
+    <g id="c6" class="pconn">
+      <line x1="810" y1="265" x2="810" y2="167" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+      <text x="818" y="225" class="branch">no</text>
+    </g>
+    <g id="c7" class="pconn"><path d="M730 135 H690 V263" fill="none" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/></g>
+    <g id="c8" class="pconn"><path d="M1080 295 H1110 V445 H1136" fill="none" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/></g>
+    <g id="c9" class="pconn"><line x1="1320" y1="445" x2="1356" y2="445" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/></g>
+    <g id="c10" class="pconn">
+      <line x1="1420" y1="445" x2="1446" y2="445" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+      <text x="1425" y="438" class="branch">yes</text>
+    </g>
+    <g id="c11" class="pconn">
+      <path d="M1390 415 V385 H1230 V413" fill="none" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/>
+      <text x="1298" y="379" class="branch">hold</text>
+    </g>
+    <g id="c12" class="pconn"><line x1="1620" y1="445" x2="1636" y2="445" stroke="#5f5e5a" stroke-width="1.3" marker-end="url(#arr)"/></g>
 
-    <line x1="340" y1="163" x2="340" y2="556" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
-    <line x1="585" y1="323" x2="585" y2="556" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
-    <line x1="650" y1="323" x2="650" y2="676" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
-    <line x1="985" y1="323" x2="985" y2="556" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
-    <line x1="1500" y1="473" x2="1500" y2="556" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
-    <line x1="1610" y1="473" x2="1610" y2="676" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/>
+    <g id="d1" class="sysconn"><line x1="340" y1="163" x2="340" y2="556" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/></g>
+    <g id="d2" class="sysconn"><line x1="585" y1="323" x2="585" y2="556" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/></g>
+    <g id="d3" class="sysconn"><line x1="650" y1="323" x2="650" y2="676" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/></g>
+    <g id="d4" class="sysconn"><line x1="985" y1="323" x2="985" y2="556" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/></g>
+    <g id="d5" class="sysconn"><line x1="1500" y1="473" x2="1500" y2="556" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/></g>
+    <g id="d6" class="sysconn"><line x1="1610" y1="473" x2="1610" y2="676" stroke="#9095a3" stroke-width="1.1" stroke-dasharray="5 4" marker-end="url(#arr)"/></g>
+
+    <circle id="token" r="7" fill="#1a1d26" stroke="#ffffff" stroke-width="2"/>
   </svg>
   </div>
 
@@ -238,5 +331,282 @@
     <a class="btn" href="feature-release-lifecycle.html">Open the stage view &#8594;</a>
   </div>
 </div>
+
+<script>
+(function () {
+  "use strict";
+
+  var svg = document.getElementById("diagram");
+  var token = document.getElementById("token");
+  var scrollbox = document.getElementById("scrollbox");
+  var caption = document.getElementById("caption");
+  var btnPlay = document.getElementById("btnPlay");
+  var btnPrev = document.getElementById("btnPrev");
+  var btnNext = document.getElementById("btnNext");
+  var btnReset = document.getElementById("btnReset");
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Walkthrough script. nodes/path/fx/fxconn/flash are element ids.
+  var STEPS = [
+    { title: "Epic + flag plan", nodes: ["n-start"], fx: ["s-flag"],
+      desc: "The squad opens the epic with a flag plan. PostHog: the flag is created, live dark at 0-1%." },
+    { title: "Dev sub-issues built", path: ["c1"], nodes: ["n-dev"], fx: ["s-subdone"], fxconn: ["d1"],
+      desc: "Engineers build and merge behind the flag. Linear: sub-issues close at merge, exactly as today." },
+    { title: "Code-complete?", path: ["c2"], nodes: ["gw-cc"],
+      desc: "The eng lead declares code-complete: every sub-issue Done behind the flag, E2E cases attached, no open S0/S1." },
+    { title: "Feature E2E on the internal cohort", path: ["c3"], nodes: ["n-e2e"], fx: ["s-readyqa", "s-cohort"], fxconn: ["d2", "d3"],
+      desc: "Chathura runs feature E2E with staff + QA accounts only. Linear: the epic holds the Ready for QA state. PostHog: internal cohort only." },
+    { title: "Pass?", path: ["c4"], nodes: ["gw-pass"],
+      desc: "Gate: did the feature E2E pass on the internal cohort?" },
+    { title: "No: fix findings", path: ["c6", "c7"], nodes: ["n-fix"],
+      desc: "Failures spin off new bug tickets. Fixes merge behind the flag and E2E runs again." },
+    { title: "Yes: hand off to UAT", path: ["c4", "c5"], nodes: ["n-uat-move"], fx: ["s-uat"], fxconn: ["d4"],
+      desc: "E2E passes. The epic moves to UAT, assigned to the UAT owner. Linear: inbox ping to the owner." },
+    { title: "Signoff, training, notes", path: ["c8"], nodes: ["n-signoff"],
+      desc: "Kenny + the Ops tester run UAT: signoff, team training, team/member release notes. The changelog agent pre-drafts them. Members still see nothing." },
+    { title: "Launch?", path: ["c9"], nodes: ["gw-launch"], flash: ["c11"],
+      desc: "Gate: ready to launch? A hold loops back to signoff until it clears." },
+    { title: "Launch: ramp to 100%", path: ["c10"], nodes: ["n-launch"], fx: ["s-done", "s-ramp"], fxconn: ["d5", "d6"],
+      desc: "The ramp is the launch: 1 - 10 - 50 - 100% of members. Linear: the epic closes with a cleanup ticket." },
+    { title: "GA", path: ["c12"], nodes: ["n-end"],
+      desc: "General availability: the flag sits at 100% and the cleanup ticket retires it." }
+  ];
+
+  var HAPPY_PATH = ["c1", "c2", "c3", "c4", "c5", "c8", "c9", "c10", "c12"];
+  var TOKEN_SPEED = 260; // px per second
+  var HOLD_MS = 2100;    // pause on each step during autoplay
+
+  var idx = -1;          // -1 = idle
+  var playing = false;
+  var animToken = 0;     // invalidates in-flight animations
+
+  function el(id) { return document.getElementById(id); }
+  function geoOf(connId) {
+    var g = el(connId);
+    return g ? g.querySelector("line, path") : null;
+  }
+
+  // Ambient flow pulses along the happy path (visible when idle).
+  function buildFlowlines() {
+    HAPPY_PATH.forEach(function (id) {
+      var geo = geoOf(id);
+      if (!geo) return;
+      var copy = geo.cloneNode(false);
+      copy.removeAttribute("marker-end");
+      copy.removeAttribute("stroke");
+      copy.removeAttribute("stroke-width");
+      copy.removeAttribute("class");
+      copy.setAttribute("class", "flowline");
+      el(id).appendChild(copy);
+    });
+  }
+
+  function clearState() {
+    animToken++;
+    svg.querySelectorAll(".active, .visited, .fired, .flash").forEach(function (n) {
+      n.classList.remove("active", "visited", "fired", "flash");
+    });
+    svg.querySelectorAll(".pconn line, .pconn path").forEach(function (n) {
+      n.style.strokeDasharray = "";
+      n.style.strokeDashoffset = "";
+    });
+    token.classList.remove("on");
+  }
+
+  function setCaption(i) {
+    if (i < 0) {
+      caption.innerHTML = "Press <b>Play</b> to walk the flow step by step, or use <b>Step</b> to advance at your own pace.";
+      return;
+    }
+    var s = STEPS[i];
+    caption.innerHTML = '<span class="stepno">Step ' + (i + 1) + " of " + STEPS.length + "</span><b>" + s.title + "</b> &mdash; " + s.desc;
+  }
+
+  function syncButtons() {
+    btnPrev.disabled = idx < 0;
+    btnNext.disabled = idx >= STEPS.length - 1 && !playing;
+    btnReset.disabled = idx < 0 && !playing;
+    btnPlay.innerHTML = playing ? "&#10074;&#10074;&nbsp; Pause" : (idx >= STEPS.length - 1 ? "&#8635;&nbsp; Replay" : "&#9654;&nbsp; Play");
+  }
+
+  function applyStepClasses(stepIdx, phase) {
+    // phase: "arriving" marks only path; "arrived" marks nodes + fx too.
+    var s = STEPS[stepIdx];
+    (s.path || []).forEach(function (id) { el(id).classList.add("active"); });
+    if (phase === "arrived") {
+      (s.nodes || []).forEach(function (id) { el(id).classList.add("active"); });
+      (s.fx || []).forEach(function (id) { el(id).classList.add("fired"); });
+      (s.fxconn || []).forEach(function (id) { el(id).classList.add("fired"); });
+      (s.flash || []).forEach(function (id) { el(id).classList.add("flash"); });
+    }
+  }
+
+  function markHistory(uptoExclusive) {
+    for (var j = 0; j < uptoExclusive; j++) {
+      var s = STEPS[j];
+      (s.nodes || []).forEach(function (id) { el(id).classList.add("visited"); });
+      (s.path || []).forEach(function (id) { el(id).classList.add("visited"); });
+      (s.fx || []).forEach(function (id) { el(id).classList.add("fired"); });
+      (s.fxconn || []).forEach(function (id) { el(id).classList.add("fired"); });
+    }
+  }
+
+  function keepInView(x) {
+    var target = x - scrollbox.clientWidth * 0.55;
+    scrollbox.scrollLeft = Math.max(0, Math.min(target, scrollbox.scrollWidth - scrollbox.clientWidth));
+  }
+
+  function scrollToStep(i) {
+    var s = STEPS[i];
+    var ref = (s.nodes && s.nodes[0]) ? el(s.nodes[0]) : null;
+    if (!ref || !ref.getBBox) return;
+    var b = ref.getBBox();
+    scrollbox.scrollTo({ left: Math.max(0, b.x + b.width / 2 - scrollbox.clientWidth / 2), behavior: reduceMotion ? "auto" : "smooth" });
+  }
+
+  // Move the token along a list of connectors, drawing each on as it travels.
+  function travel(pathIds, done) {
+    if (reduceMotion || document.hidden || !pathIds || !pathIds.length) { done(); return; }
+    var my = ++animToken;
+    token.classList.add("on");
+    var k = 0;
+
+    function runOne() {
+      if (my !== animToken) return;
+      if (k >= pathIds.length) { token.classList.remove("on"); done(); return; }
+      var geo = geoOf(pathIds[k]);
+      if (!geo || !geo.getTotalLength) { k++; runOne(); return; }
+      var L = geo.getTotalLength();
+      var dur = Math.min(1500, Math.max(380, (L / TOKEN_SPEED) * 1000));
+      geo.style.strokeDasharray = L + " " + L;
+      geo.style.strokeDashoffset = L;
+      var t0 = null;
+
+      function tick() {
+        if (my !== animToken) return;
+        if (document.hidden) {
+          // Tab went to the background: finish this leg instantly so the
+          // walkthrough never stalls (rAF pauses on hidden pages).
+          geo.style.strokeDasharray = "";
+          geo.style.strokeDashoffset = "";
+          k++;
+          runOne();
+          return;
+        }
+        var now = performance.now();
+        if (t0 === null) t0 = now;
+        var t = Math.min(1, (now - t0) / dur);
+        var ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+        var p = geo.getPointAtLength(ease * L);
+        token.setAttribute("cx", p.x);
+        token.setAttribute("cy", p.y);
+        geo.style.strokeDashoffset = String((1 - ease) * L);
+        keepInView(p.x);
+        if (t < 1) { schedule(); }
+        else {
+          geo.style.strokeDasharray = "";
+          geo.style.strokeDashoffset = "";
+          k++;
+          runOne();
+        }
+      }
+
+      // rAF for smoothness, with a timer fallback so travel keeps making
+      // progress even when the browser stops producing animation frames
+      // (background window, throttling, embedded panes).
+      function schedule() {
+        var fired = false;
+        var raf = requestAnimationFrame(function () {
+          if (fired) return;
+          fired = true;
+          clearTimeout(fallback);
+          tick();
+        });
+        var fallback = setTimeout(function () {
+          if (fired) return;
+          fired = true;
+          if (window.cancelAnimationFrame) cancelAnimationFrame(raf);
+          tick();
+        }, 150);
+      }
+      schedule();
+    }
+    runOne();
+  }
+
+  function goTo(i, animate, done) {
+    done = done || function () {};
+    if (i < 0) {
+      clearState();
+      svg.classList.remove("playing");
+      idx = -1;
+      setCaption(-1);
+      syncButtons();
+      done();
+      return;
+    }
+    var forwardOne = animate && i === idx + 1;
+    clearState();
+    svg.classList.add("playing");
+    markHistory(i);
+    idx = i;
+    setCaption(i);
+    syncButtons();
+
+    if (forwardOne && !reduceMotion) {
+      applyStepClasses(i, "arriving");
+      travel(STEPS[i].path, function () {
+        applyStepClasses(i, "arrived");
+        done();
+      });
+    } else {
+      applyStepClasses(i, "arrived");
+      scrollToStep(i);
+      done();
+    }
+  }
+
+  function autoplayNext() {
+    if (!playing) return;
+    if (idx >= STEPS.length - 1) { playing = false; syncButtons(); return; }
+    goTo(idx + 1, true, function () {
+      if (!playing) return;
+      var my = animToken;
+      setTimeout(function () {
+        if (playing && my === animToken) autoplayNext();
+      }, HOLD_MS);
+    });
+  }
+
+  btnPlay.addEventListener("click", function () {
+    if (playing) { playing = false; syncButtons(); return; }
+    if (idx >= STEPS.length - 1) { goTo(-1, false); }
+    playing = true;
+    syncButtons();
+    autoplayNext();
+  });
+  btnNext.addEventListener("click", function () {
+    playing = false;
+    if (idx < STEPS.length - 1) goTo(idx + 1, true);
+    else syncButtons();
+  });
+  btnPrev.addEventListener("click", function () {
+    playing = false;
+    goTo(idx - 1, false);
+  });
+  btnReset.addEventListener("click", function () {
+    playing = false;
+    goTo(-1, false);
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight") { e.preventDefault(); btnNext.click(); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); btnPrev.click(); }
+  });
+
+  buildFlowlines();
+  syncButtons();
+})();
+</script>
 </body>
 </html>
