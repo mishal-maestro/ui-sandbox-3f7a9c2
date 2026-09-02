@@ -129,7 +129,7 @@
 <div class="page">
   <div class="head">
     <h1>Feature Release Lifecycle</h1>
-    <div class="tag">Proposal v0.2 &middot; Aug 2026 <a href="feature-release-bpmn.html">Process view (BPMN) &#8594;</a></div>
+    <div class="tag">Proposal v0.3 &middot; Sep 2026 <a href="feature-release-bpmn.html">Process view (BPMN) &#8594;</a></div>
   </div>
   <div class="sub">
     Member and team facing features, from epic + flag through GA. <b>The epic is the release:</b> it walks the states we already use, with defined gates and owners. Dev tickets keep closing at merge; <b>the epic is the only issue that waits</b>, and its wait is the signal: merged is not live. No new tickets, no new pipeline, one new label (<code>feature-release</code>).
@@ -153,14 +153,14 @@
     <div class="stage" style="--c:#f2994a;">
       <div class="state"><span class="dot"></span><span class="statename">In QA</span></div>
       <div class="meaning">Feature-level end-to-end pass</div>
-      <div class="row"><span class="lbl">What happens</span>Full E2E across the feature with the flag on for the internal cohort only (staff + QA accounts, no members). Routed the same way as per-ticket QA: <code>qa:chathura</code> label on the epic.</div>
-      <div class="owner"><span class="lbl">Owner</span><b>Chathura</b> (QA lead, via label)</div>
+      <div class="row"><span class="lbl">What happens</span>Full E2E across the feature with the flag on for internal accounts only (staff + QA, no members). Routed the same way as per-ticket QA: <code>qa:chathura</code> label on the epic.</div>
+      <div class="owner"><span class="lbl">Owner</span><b>Chathura</b> (our single QA, via label)</div>
     </div>
     <div class="arrow">&#8594;</div>
     <div class="stage" style="--c:#8b5cf6;">
       <div class="state"><span class="dot"></span><span class="statename">UAT</span></div>
       <div class="meaning">Business handoff and enablement</div>
-      <div class="row"><span class="lbl">What happens</span>UAT signoff with an Ops tester &middot; team training &middot; team + member release notes (changelog agent drafts, owner edits and posts). Still internal: members see nothing yet.</div>
+      <div class="row"><span class="lbl">What happens</span>UAT signoff with an Ops tester &middot; team training &middot; team + member release notes (changelog agent drafts, owner edits and posts). The flag stays on for internal accounts, so the Ops testers use the real feature in prod; members see nothing yet.</div>
       <div class="owner"><span class="lbl">Owner</span><b>Kenny</b> (accepted) + Ops tester</div>
     </div>
     <div class="arrow">&#8594;</div>
@@ -181,7 +181,7 @@
     <ul>
       <li><b>Merge automation</b> &middot; dev tickets still go Done at PR merge, no change; QA stays routed via <code>qa:chathura</code></li>
       <li><b>Deploy releases</b> &middot; Linear's Releases pipeline + #engineering-release-notes keep tracking deploys. A feature release here is the epic reaching GA, not a Linear Release object</li>
-      <li><b>Rollout ladder (ENG-379)</b> &middot; per-flag path set at brief: straight to 100% / UAT first / beta cohort. This lifecycle = the UAT-first path made concrete</li>
+      <li><b>Rollout ladder (ENG-379)</b> &middot; per-flag path set at brief: straight to 100% / UAT first / member beta group. This lifecycle = the UAT-first path made concrete</li>
       <li><b>Flag hygiene routine (PLT-978)</b> &middot; weekly digest feeds the UAT stage and the coverage sweep</li>
     </ul>
   </div>
