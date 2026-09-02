@@ -286,6 +286,7 @@
   <div class="controls">
     <button class="play" id="btnPlay">&#9654;&nbsp; Play</button>
     <button class="voice" id="btnVoice" aria-pressed="false">Voice: off</button>
+    <button class="voice on" id="btnCap" aria-pressed="true">Captions: on</button>
     <span class="time" id="time">0:00 / 0:00</span>
     <div class="trackwrap">
       <div id="fill"></div>
@@ -294,7 +295,7 @@
   </div>
   <div class="chapters" id="chaps"></div>
 
-  <div class="note">People in this story: Kalpa, Thiranjaya and Yasiru (Conductor squad), Chathura (QA), Kenny (UAT owner), Kallie (Ops tester). Keyboard: space = play/pause, arrow keys = previous/next chapter. Voice uses your computer's built-in speech (no downloads); it sounds best in Edge, and playback slows slightly while it is on.</div>
+  <div class="note">People in this story: Kalpa, Thiranjaya and Yasiru (Conductor squad), Chathura (QA), Kenny (UAT owner), Kallie (Ops tester). Keyboard: space = play/pause, arrow keys = previous/next chapter, c = captions on/off. Voice uses your computer's built-in speech (no downloads); it sounds best in Edge, and playback slows slightly while it is on.</div>
 </div>
 
 <script>
@@ -502,7 +503,7 @@
       lastCap = cap;
       if (playing && cap) speak(cap);
     }
-    capEl.style.opacity = cap ? 1 : 0;
+    capEl.style.opacity = (cap && capsOn !== false) ? 1 : 0;
 
     // controls
     document.getElementById("track").value = Math.round((now / DURATION) * 1000);
@@ -590,12 +591,22 @@
       else if (playing && lastCap) speak(lastCap);
     });
   }
+  var capsOn = true;
+  var btnCap = document.getElementById("btnCap");
+  btnCap.addEventListener("click", function () {
+    capsOn = !capsOn;
+    btnCap.classList.toggle("on", capsOn);
+    btnCap.setAttribute("aria-pressed", String(capsOn));
+    btnCap.textContent = capsOn ? "Captions: on" : "Captions: off";
+    document.getElementById("cap").style.opacity = (capsOn && lastCap) ? 1 : 0;
+  });
   var track = document.getElementById("track");
   track.addEventListener("input", function () { playing = false; gen++; jumpTo((track.value / 1000) * DURATION); });
   document.addEventListener("keydown", function (e) {
     if (e.key === " ") { e.preventDefault(); playing ? pause() : play(); }
     else if (e.key === "ArrowRight") { e.preventDefault(); var c = currentChapter(t) + 1; if (c < CHAPTERS.length) { playing = false; gen++; jumpTo(CHAPTERS[c].t); } }
     else if (e.key === "ArrowLeft") { e.preventDefault(); var c2 = Math.max(0, currentChapter(t) - (t - CHAPTERS[currentChapter(t)].t < 2 ? 1 : 0)); playing = false; gen++; jumpTo(CHAPTERS[c2].t); }
+    else if (e.key === "c" || e.key === "C") { btnCap.click(); }
   });
 
   // chapter buttons + track markers
