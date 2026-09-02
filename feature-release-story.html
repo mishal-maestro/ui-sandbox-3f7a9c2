@@ -262,7 +262,7 @@
       <div class="ph">
         <div class="flagkey" id="fkey"><span class="sw"></span>release-ops-workflow-revamp</div>
         <div class="frow" id="fr1"><span class="who">Internal dogfood</span><span style="color:#6b7080;">eng + product team</span><span class="st onl">ON &middot; 100%</span></div>
-        <div class="frow" id="fr2"><span class="who">UAT testers</span><span class="grp"><span class="av" style="background:#8b5cf6;">KL</span><span class="av" style="background:#4cb782;">KD</span></span><span class="st onl">ON &middot; 100%</span></div>
+        <div class="frow" id="fr2"><span class="who">UAT testers</span><span class="grp"><span class="av" style="background:#8b5cf6;">KD</span><span class="av" style="background:#4cb782;">OP</span></span><span class="st onl">ON &middot; 100%</span></div>
         <div class="frow" id="rampRow" style="display:block;">
           <div class="top" style="display:flex;align-items:center;gap:8px;width:100%;"><span class="who">Everyone else</span><span class="st offl" id="rampPct">OFF &middot; 0%</span></div>
           <div class="rampbar" style="width:100%;"><i id="rampFill"></i></div>
@@ -274,7 +274,7 @@
       <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="app"><span class="appdot" style="background:#4a154b;"></span>Slack &middot; #feature-releases</span></div>
       <div class="msgs">
         <div class="msg" id="m1"><span class="av" style="background:#1a1d26;">RB</span><div class="body"><span class="nm">Release Bot</span><span class="tm">02:10</span><br>Code-complete candidate: <b>Ops workflow revamp</b> &middot; <code>release-ops-workflow-revamp</code> &middot; all sub-tasks merged. Confirm, <span class="mn">@Yasiru</span>?</div></div>
-        <div class="msg" id="m2"><span class="av" style="background:#1a1d26;">RB</span><div class="body"><span class="nm">Release Bot</span><span class="tm">14:02</span><br>Ready for UAT: <b>Ops workflow revamp</b> &middot; flag is now ON for UAT testers. Over to you, <span class="mn">@Kenny</span> <span class="mn">@Kallie</span></div></div>
+        <div class="msg" id="m2"><span class="av" style="background:#1a1d26;">RB</span><div class="body"><span class="nm">Release Bot</span><span class="tm">14:02</span><br>Ready for UAT: <b>Ops workflow revamp</b> &middot; flag is now ON for UAT testers. Over to you, <span class="mn">@Kallie</span> (cc <span class="mn">@Kenny</span>)</div></div>
         <div class="msg" id="m3"><span class="av" style="background:#1a1d26;">RB</span><div class="body"><span class="nm">Release Bot</span><span class="tm">09:41</span><br>Shipped: <b>Ops workflow revamp</b> is live for everyone. Epic closed automatically at 100%.</div></div>
       </div>
     </div>
@@ -295,7 +295,7 @@
   </div>
   <div class="chapters" id="chaps"></div>
 
-  <div class="note">People in this story: Kalpa, Thiranjaya and Yasiru (Conductor squad), Chathura (QA), Kenny (UAT owner), Kallie (Ops tester). Keyboard: space = play/pause, arrow keys = previous/next chapter, c = captions on/off. Voice uses your computer's built-in speech (no downloads); it sounds best in Edge, and playback slows slightly while it is on.</div>
+  <div class="note">People in this story: Kalpa, Thiranjaya and Yasiru (Conductor squad), Chathura (QA), Kallie (UAT owner, plus the ops testers she brings in), Kenny (oversees UAT). Keyboard: space = play/pause, arrow keys = previous/next chapter, c = captions on/off. Voice uses your computer's built-in speech (no downloads); it sounds best in Edge, and playback slows slightly while it is on.</div>
 </div>
 
 <script>
@@ -374,22 +374,22 @@
 
     // ch5 UAT
     { t: 67.5, type: "move", card: "epic", col: 3, slot: 0, dur: 1.3 },
-    { t: 68.2, type: "avatar", initials: "KL", bg: "#8b5cf6" },
-    { t: 68.4, type: "cap", text: "The epic moves to UAT and is reassigned to Kenny, the UAT owner. That is the handoff." },
+    { t: 68.2, type: "avatar", initials: "KD", bg: "#8b5cf6" },
+    { t: 68.4, type: "cap", text: "The epic moves to UAT and is reassigned to Kallie, the UAT owner. That is the handoff." },
     { t: 71.6, type: "msg", id: "m2" },
     { t: 72.2, type: "frow", id: "fr2" },
-    { t: 72.6, type: "cap", text: "Automatically: a Slack ping, and the flag switches on for the UAT testers group - Kenny and Kallie." },
-    { t: 76.6, type: "cap", text: "Kallie tests real ops scenarios in production. Everyone else still sees nothing." },
+    { t: 72.6, type: "cap", text: "Automatically: a Slack ping, and the flag switches on for the UAT testers group - Kallie and the ops testers she brings in." },
+    { t: 76.6, type: "cap", text: "Her ops testers run real scenarios in production. Everyone else still sees nothing." },
     { t: 79.6, type: "checks" },
     { t: 80.2, type: "tick", id: "ck1" },
-    { t: 80.4, type: "cap", text: "Signoff, team training, and a short guide for the team if the feature needs one. All manual, all Kenny's." },
+    { t: 80.4, type: "cap", text: "Signoff, team training, and a short guide for the team if the feature needs one. All manual, all Kallie's - Kenny oversees." },
     { t: 81.8, type: "tick", id: "ck2" },
     { t: 83.4, type: "tick", id: "ck3" },
     { t: 84.6, type: "cap", text: "UAT signed off. Now, and only now, comes the launch." },
 
     // ch6 Launch
     { t: 88.0, type: "ramp", pct: 1 },
-    { t: 88.4, type: "cap", text: "The rollout ramp IS the launch: Kenny takes the flag to 1, then 10, then 50, then 100 percent - in PostHog." },
+    { t: 88.4, type: "cap", text: "The rollout ramp IS the launch: Kallie takes the flag to 1, then 10, then 50, then 100 percent - in PostHog." },
     { t: 90.0, type: "ramp", pct: 10 },
     { t: 92.2, type: "ramp", pct: 50 },
     { t: 94.4, type: "ramp", pct: 100 },

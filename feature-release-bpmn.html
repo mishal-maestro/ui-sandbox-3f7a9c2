@@ -174,7 +174,7 @@
     <text x="70" y="310" class="lane-sub">Chathura, single QA</text>
     <circle cx="58" cy="438" r="4" fill="#8b5cf6"/>
     <text x="70" y="442" class="lane-label">UAT owner</text>
-    <text x="70" y="460" class="lane-sub">Kenny + Ops tester</text>
+    <text x="70" y="460" class="lane-sub">Kallie + ops testers</text>
     <circle cx="58" cy="573" r="4" fill="#8a8f9d"/>
     <text x="70" y="577" class="lane-label">Linear</text>
     <text x="70" y="595" class="lane-sub">system of record</text>
@@ -374,7 +374,7 @@
     { title: "Yes: hand off to UAT", path: ["c4", "c5"], nodes: ["n-uat-move"], fx: ["s-uat"], fxconn: ["d4"],
       desc: "E2E passes. The epic moves to UAT, assigned to the UAT owner. Linear: inbox ping to the owner." },
     { title: "Signoff, training, notes", path: ["c8"], nodes: ["n-signoff"], fx: ["s-opscohort"], fxconn: ["d7"],
-      desc: "Kenny + the Ops tester run UAT: signoff, team training, and a short team guide if the feature needs one (manual, the owner's). PostHog: the ops testers are inside the flag's internal group, so they test the real feature in prod; everyone else still at 0%." },
+      desc: "Kallie + her ops testers run UAT (Kenny oversees): signoff, team training, and a short team guide if the feature needs one (manual, the owner's). PostHog: the testers are inside the flag's internal group, so they test the real feature in prod; everyone else still at 0%." },
     { title: "Launch?", path: ["c9"], nodes: ["gw-launch"], flash: ["c11"],
       desc: "Gate: ready to launch? The UAT owner decides; a hold loops back to signoff until it clears." },
     { title: "Launch: ramp to 100%", path: ["c10"], nodes: ["n-launch"], fx: ["s-done", "s-ramp"], fxconn: ["d5", "d6"],

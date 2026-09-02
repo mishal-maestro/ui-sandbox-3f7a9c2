@@ -161,14 +161,14 @@
       <div class="state"><span class="dot"></span><span class="statename">UAT</span></div>
       <div class="meaning">Business handoff and enablement</div>
       <div class="row"><span class="lbl">What happens</span>UAT signoff with an Ops tester &middot; team training &middot; a short team guide, written manually by the owner if the feature needs one. External member-facing notes belong to the mobile release path, not here. The flag stays on for internal accounts, so the Ops testers use the real feature in prod; everyone else sees nothing yet.</div>
-      <div class="owner"><span class="lbl">Owner</span><b>Kenny</b> (accepted) + Ops tester</div>
+      <div class="owner"><span class="lbl">Owner</span><b>Kallie</b> + ops testers she recruits &middot; Kenny oversees</div>
     </div>
     <div class="arrow">&#8594;</div>
     <div class="stage" style="--c:#4cb782;">
       <div class="state"><span class="dot"></span><span class="statename">Done</span></div>
       <div class="meaning">= GA, live for everyone</div>
       <div class="row"><span class="lbl">Gate to close</span>Rollout ramp 1 &#8594; 10 &#8594; 50 &#8594; 100% in PostHog (or straight flip, per the ENG-379 ladder) &middot; at 100% the epic auto-closes with the closing comment (flag, who, when) + cleanup ticket &middot; no Linear visit needed</div>
-      <div class="owner"><span class="lbl">Flag ramped by</span><b>Kenny</b> <span class="tbd">(co-sign TBD)</span> &middot; epic closes itself</div>
+      <div class="owner"><span class="lbl">Flag ramped by</span><b>Kallie</b>, Kenny oversees <span class="tbd">(eng co-sign TBD)</span> &middot; epic closes itself</div>
     </div>
   </div>
 
@@ -198,7 +198,7 @@
     <div class="col">
       <h2>Decisions needed (POs)</h2>
       <ol>
-        <li><b>UAT owner seat</b> &middot; Kenny accepted (Aug 18), loops in an Ops tester; one global owner or per squad TBC</li>
+        <li><b>UAT owner seat</b> &middot; settled Sep 2: Kallie operates it with ops testers she recruits, Kenny oversees; per-squad only if volume demands</li>
         <li><b>Code-complete definition</b> &middot; ratify the gate above</li>
         <li><b>Flag-flip authority</b> &middot; UAT owner alone, or eng lead co-sign</li>
         <li><b>Hold authority</b> &middot; can the UAT owner hold a launch, on what grounds</li>
@@ -207,7 +207,7 @@
     <div class="col">
       <h2>Pilot</h2>
       <ol>
-        <li><b>CON-3323</b> Ops workflow revamp &middot; fresh epic, Kenny + Kallie build it and UAT it, flag <code>release-ops-workflow-revamp</code> &middot; the pilot</li>
+        <li><b>CON-3323</b> Ops workflow revamp &middot; fresh epic from Kenny + Kallie, Kallie runs its UAT, flag <code>release-ops-workflow-revamp</code> &middot; the pilot</li>
         <li><b>CON-2193</b> External itinerary import &middot; in flight, flag <code>release-external-itinerary-import</code> &middot; backup</li>
         <li><b>CON-1606</b> Tasks redesign &middot; shipped Aug 19 straight from Ready for QA to Done, flag already at 100% &middot; the miss this lifecycle closes</li>
       </ol>
