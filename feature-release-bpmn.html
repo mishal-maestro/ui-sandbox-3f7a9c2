@@ -211,7 +211,7 @@
       <rect x="560" y="267" width="180" height="56" rx="6" fill="#ffffff" stroke="#d7dae2"/>
       <rect x="560" y="267" width="4" height="56" fill="#f2994a"/>
       <text x="573" y="290" class="t-title">Feature E2E pass</text>
-      <text x="573" y="308" class="t-sub">internal accounts only</text>
+      <text x="573" y="308" class="t-sub">on staging, flag on there</text>
     </g>
 
     <g id="gw-pass" class="pnode">
@@ -279,8 +279,8 @@
     </g>
     <g id="s-cohort" class="sysbox">
       <rect x="560" y="680" width="170" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
-      <text x="645" y="700" class="s-text" text-anchor="middle">Internal accounts only</text>
-      <text x="645" y="716" class="s-sub" text-anchor="middle">staff + QA accounts</text>
+      <text x="645" y="700" class="s-text" text-anchor="middle">Prod: internal only</text>
+      <text x="645" y="716" class="s-sub" text-anchor="middle">QA tests on staging</text>
     </g>
     <g id="s-opscohort" class="sysbox">
       <rect x="1145" y="680" width="170" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
@@ -365,8 +365,8 @@
       desc: "Engineers build and merge behind the flag. Linear: sub-issues close at merge, exactly as today." },
     { title: "Code-complete?", path: ["c2"], nodes: ["gw-cc"], fx: ["s-readyqa"], fxconn: ["d2"],
       desc: "The eng lead confirms code-complete (every sub-issue Done behind the flag, E2E cases attached, no open S0/S1) and moves the epic to Ready for QA by hand. The nightly sweep only nudges; it never moves states." },
-    { title: "Feature E2E on internal accounts", path: ["c3"], nodes: ["n-e2e"], fx: ["s-cohort"], fxconn: ["d3"],
-      desc: "Chathura, our single QA, runs the full E2E, routed via the qa:chathura label. Linear: the epic holds Ready for QA. PostHog: the flag is on for internal accounts only (staff + QA)." },
+    { title: "Feature E2E on staging", path: ["c3"], nodes: ["n-e2e"], fx: ["s-cohort"], fxconn: ["d3"],
+      desc: "Chathura, our single QA, runs the full E2E on staging with the flag on there, routed via the qa:chathura label. Linear: the epic holds Ready for QA. PostHog prod: the flag stays on for internal accounts only." },
     { title: "Pass?", path: ["c4"], nodes: ["gw-pass"],
       desc: "Gate: did the feature E2E pass on internal accounts?" },
     { title: "No: fix findings", path: ["c6", "c7"], nodes: ["n-fix"],
