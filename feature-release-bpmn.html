@@ -123,7 +123,7 @@
     <h1>Feature Release Lifecycle - Process View</h1>
     <a href="feature-release-lifecycle.html">Stage view (one-pager) &#8594;</a>
   </div>
-  <div class="sub">BPMN-style swimlanes: who does what, and what Linear and PostHog record at each step. The epic (parent issue) is the carrier through the whole flow. Members see nothing until UAT has signed off; the ramp is the launch, not the test. Proposal v0.3, Sep 2026.</div>
+  <div class="sub">BPMN-style swimlanes: who does what, and what Linear and PostHog record at each step. The epic (parent issue) is the carrier through the whole flow. Nothing rolls out beyond the internal test group until UAT has signed off; the ramp is the launch, not the test. Mobile-app releases follow their own beta path, separate from this ramp. Proposal v0.4, Sep 2026.</div>
   <div class="legend">
     <span><span class="sw" style="background:#fff;border:1.5px solid #b3b8c4;"></span>task (colored bar = actor)</span>
     <span><span class="sw" style="background:#fff7e8;border:1.5px solid #ba7517;transform:rotate(45deg);border-radius:2px;"></span>decision gate</span>
@@ -279,16 +279,16 @@
     <g id="s-cohort" class="sysbox">
       <rect x="560" y="680" width="170" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
       <text x="645" y="700" class="s-text" text-anchor="middle">Internal accounts only</text>
-      <text x="645" y="716" class="s-sub" text-anchor="middle">staff + QA, no members</text>
+      <text x="645" y="716" class="s-sub" text-anchor="middle">staff + QA accounts</text>
     </g>
     <g id="s-opscohort" class="sysbox">
       <rect x="1145" y="680" width="170" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
       <text x="1230" y="700" class="s-text" text-anchor="middle">Ops testers included</text>
-      <text x="1230" y="716" class="s-sub" text-anchor="middle">members still at 0%</text>
+      <text x="1230" y="716" class="s-sub" text-anchor="middle">everyone else at 0%</text>
     </g>
     <g id="s-ramp" class="sysbox">
       <rect x="1500" y="680" width="140" height="48" rx="6" fill="#ffffff" stroke="#9095a3" stroke-dasharray="4 3"/>
-      <text x="1570" y="700" class="s-text" text-anchor="middle">Member ramp</text>
+      <text x="1570" y="700" class="s-text" text-anchor="middle">Rollout ramp</text>
       <text x="1570" y="716" class="s-sub" text-anchor="middle">1 &#8594; 10 &#8594; 50 &#8594; 100%</text>
     </g>
 
@@ -362,7 +362,7 @@
     { title: "Code-complete?", path: ["c2"], nodes: ["gw-cc"],
       desc: "The eng lead declares code-complete: every sub-issue Done behind the flag, E2E cases attached, no open S0/S1." },
     { title: "Feature E2E on internal accounts", path: ["c3"], nodes: ["n-e2e"], fx: ["s-readyqa", "s-cohort"], fxconn: ["d2", "d3"],
-      desc: "Chathura, our single QA, runs the full E2E, routed via the qa:chathura label. Linear: the epic holds Ready for QA. PostHog: the flag is on for internal accounts only (staff + QA, no members)." },
+      desc: "Chathura, our single QA, runs the full E2E, routed via the qa:chathura label. Linear: the epic holds Ready for QA. PostHog: the flag is on for internal accounts only (staff + QA)." },
     { title: "Pass?", path: ["c4"], nodes: ["gw-pass"],
       desc: "Gate: did the feature E2E pass on internal accounts?" },
     { title: "No: fix findings", path: ["c6", "c7"], nodes: ["n-fix"],
@@ -370,11 +370,11 @@
     { title: "Yes: hand off to UAT", path: ["c4", "c5"], nodes: ["n-uat-move"], fx: ["s-uat"], fxconn: ["d4"],
       desc: "E2E passes. The epic moves to UAT, assigned to the UAT owner. Linear: inbox ping to the owner." },
     { title: "Signoff, training, notes", path: ["c8"], nodes: ["n-signoff"], fx: ["s-opscohort"], fxconn: ["d7"],
-      desc: "Kenny + the Ops tester run UAT: signoff, team training, team/member release notes. The changelog agent pre-drafts them. PostHog: the ops testers are inside the flag's internal group, so they test the real feature in prod; members still at 0%." },
+      desc: "Kenny + the Ops tester run UAT: signoff, team training, team + external release notes. The changelog agent pre-drafts them. PostHog: the ops testers are inside the flag's internal group, so they test the real feature in prod; everyone else still at 0%." },
     { title: "Launch?", path: ["c9"], nodes: ["gw-launch"], flash: ["c11"],
       desc: "Gate: ready to launch? A hold loops back to signoff until it clears." },
     { title: "Launch: ramp to 100%", path: ["c10"], nodes: ["n-launch"], fx: ["s-done", "s-ramp"], fxconn: ["d5", "d6"],
-      desc: "The ramp is the launch: 1 - 10 - 50 - 100% of members. Linear: the epic closes with a cleanup ticket." },
+      desc: "The ramp is the launch: 1 - 10 - 50 - 100% of all users. Linear: the epic closes with a cleanup ticket." },
     { title: "GA", path: ["c12"], nodes: ["n-end"],
       desc: "General availability: the flag sits at 100% and the cleanup ticket retires it." }
   ];
