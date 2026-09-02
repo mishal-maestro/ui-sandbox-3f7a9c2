@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How a Feature Ships - Story View</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", -apple-system, "Helvetica Neue", Arial, sans-serif;
+    background: #f4f5f8;
+    color: #1a1d26;
+    padding: 28px;
+  }
+  .page {
+    background: #ffffff;
+    border: 1px solid #e2e4ea;
+    border-radius: 14px;
+    padding: 28px 32px;
+    max-width: 1360px;
+    margin: 0 auto;
+  }
+  .head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; flex-wrap: wrap; gap: 8px; }
+  .head h1 { font-size: 24px; font-weight: 650; letter-spacing: -0.3px; }
+  .head .links a {
+    font-size: 13.5px; font-weight: 600; color: #ffffff; background: #1a1d26;
+    text-decoration: none; border-radius: 999px; padding: 9px 20px; margin-left: 10px;
+    display: inline-block;
+  }
+  .head .links a:hover { background: #30343f; }
+  .sub { font-size: 14px; color: #4c5160; margin-bottom: 16px; }
+
+  /* ---------- stage ---------- */
+  .scrollwrap { overflow-x: auto; }
+  .stage {
+    position: relative; width: 1290px; height: 560px;
+    background: #eef0f5; border: 1px solid #e2e4ea; border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .panel {
+    position: absolute; background: #ffffff; border: 1px solid #dcdfe7; border-radius: 10px;
+    overflow: hidden;
+  }
+  .panel .bar {
+    height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 12px;
+    background: #fbfbfd; border-bottom: 1px solid #eef0f5;
+    font-size: 11.5px; font-weight: 650; color: #4c5160;
+  }
+  .bar .dots { display: inline-flex; gap: 4px; }
+  .bar .dots i { width: 8px; height: 8px; border-radius: 50%; background: #d7dae2; }
+  .bar .app { display: inline-flex; align-items: center; gap: 6px; }
+  .bar .appdot { width: 8px; height: 8px; border-radius: 3px; }
+
+  #board { left: 16px; top: 16px; width: 830px; height: 448px; }
+  #posthog { left: 862px; top: 16px; width: 412px; height: 214px; }
+  #slackp { left: 862px; top: 244px; width: 412px; height: 220px; }
+
+  /* board columns */
+  .cols { position: absolute; left: 0; top: 30px; right: 0; bottom: 0; display: flex; }
+  .colm { flex: 1 1 0; border-right: 1px solid #f1f2f6; padding: 8px 8px 0; }
+  .colm:last-child { border-right: none; }
+  .colhead { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: #6b7080; margin-bottom: 6px; }
+  .colhead .cdot { width: 8px; height: 8px; border-radius: 50%; }
+  .colhead .cnt { margin-left: auto; font-weight: 600; color: #9095a3; }
+
+  /* cards (absolutely positioned on the board, moved by JS) */
+  .card {
+    position: absolute; width: 150px; background: #ffffff;
+    border: 1px solid #dcdfe7; border-radius: 8px; padding: 8px 9px;
+    box-shadow: 0 1px 2px rgba(20,22,32,.05);
+    opacity: 0; will-change: transform;
+  }
+  .card .cid { font-size: 9.5px; font-weight: 600; color: #9095a3; margin-bottom: 2px; display: flex; align-items: center; gap: 5px; }
+  .card .ttl { font-size: 11.5px; font-weight: 650; color: #1a1d26; line-height: 1.25; }
+  .card .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; min-height: 0; }
+  .chip {
+    font-size: 8.5px; font-weight: 700; padding: 2px 6px; border-radius: 999px;
+    display: none; letter-spacing: .2px;
+  }
+  .chip.on { display: inline-block; }
+  .chip.feature { background: #f3effc; color: #6d4fc4; border: 1px solid #ddd2f5; }
+  .chip.qa { background: #e7f6fa; color: #1888a8; border: 1px solid #c8e9f2; }
+  .chip.sev { background: #fdf1e3; color: #b45309; border: 1px solid #f5ddc0; }
+  .chip.done { background: #e9f7f0; color: #2c8c5e; border: 1px solid #cdebdc; }
+  .av {
+    margin-left: auto; width: 16px; height: 16px; border-radius: 50%;
+    font-size: 8px; font-weight: 700; color: #fff; display: inline-flex; align-items: center; justify-content: center;
+  }
+  .card.epic { width: 158px; border-left: 3px solid #8b5cf6; }
+  .card.epic .ttl { font-size: 12px; }
+  .checks { margin-top: 6px; display: none; }
+  .card.showchecks .checks { display: block; }
+  .checks div { font-size: 9.5px; color: #6b7080; padding: 1.5px 0; display: flex; gap: 5px; align-items: center; }
+  .checks .bx { width: 10px; height: 10px; border: 1.2px solid #b3b8c4; border-radius: 3px; display: inline-block; flex: 0 0 auto; position: relative; }
+  .checks div.tick { color: #2c8c5e; font-weight: 600; }
+  .checks div.tick .bx { background: #2c8c5e; border-color: #2c8c5e; }
+  .checks div.tick .bx::after { content: ""; position: absolute; left: 2.5px; top: 0px; width: 3px; height: 6px; border: solid #fff; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+
+  /* toasts */
+  .toast {
+    position: absolute; left: 50%; top: 40px; transform: translate(-50%, -8px);
+    background: #1a1d26; color: #fff; font-size: 11.5px; font-weight: 600;
+    padding: 8px 14px; border-radius: 8px; opacity: 0; pointer-events: none;
+    box-shadow: 0 4px 14px rgba(20,22,32,.25); white-space: nowrap; z-index: 30;
+  }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+  .toast b { color: #7fd4a5; }
+  .toast, .card, .msg, .frow { transition: opacity .35s ease; }
+
+  /* posthog panel */
+  .ph { padding: 10px 12px; }
+  .flagkey { display: flex; align-items: center; gap: 8px; font-family: Consolas, monospace; font-size: 12px; font-weight: 600; color: #1a1d26; margin-bottom: 8px; opacity: 0; }
+  .flagkey .sw { width: 26px; height: 15px; border-radius: 999px; background: #4cb782; position: relative; flex: 0 0 auto; }
+  .flagkey .sw::after { content: ""; position: absolute; right: 2px; top: 2px; width: 11px; height: 11px; border-radius: 50%; background: #fff; }
+  .frow {
+    display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: #30343f;
+    padding: 6px 8px; border: 1px solid #eef0f5; border-radius: 7px; margin-bottom: 6px; opacity: 0;
+  }
+  .frow .who { font-weight: 650; }
+  .frow .st { margin-left: auto; font-weight: 700; font-size: 10.5px; }
+  .frow .st.onl { color: #2c8c5e; } .frow .st.offl { color: #9095a3; }
+  .frow .grp { display: inline-flex; gap: 3px; }
+  .frow .grp .av { margin-left: 0; }
+  #rampRow { display: block; }
+  #rampRow .top { display: flex; align-items: center; gap: 8px; }
+  .rampbar { margin-top: 6px; height: 8px; border-radius: 999px; background: #eef0f5; overflow: hidden; }
+  .rampbar i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, #4ea7fc, #4cb782); border-radius: 999px; }
+
+  /* slack panel */
+  .msgs { padding: 8px 12px; }
+  .msg { display: flex; gap: 8px; margin-bottom: 8px; opacity: 0; }
+  .msg .av { margin: 1px 0 0; width: 22px; height: 22px; border-radius: 6px; font-size: 9px; flex: 0 0 auto; }
+  .msg .body { font-size: 11px; color: #30343f; line-height: 1.35; min-width: 0; flex: 1 1 auto; overflow-wrap: break-word; }
+  .msg .body .nm { font-weight: 700; color: #1a1d26; margin-right: 5px; }
+  .msg .body .tm { font-size: 9.5px; color: #9095a3; }
+  .msg .body code { font-family: Consolas, monospace; font-size: 10px; background: #eef0f5; padding: 0 4px; border-radius: 4px; color: #b3452e; }
+  .msg .body .mn { color: #1264a3; background: #e8f2fa; border-radius: 3px; padding: 0 3px; font-weight: 600; }
+
+  /* caption */
+  #cap {
+    position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+    max-width: 900px; background: rgba(20,22,32,.88); color: #fff;
+    font-size: 15px; font-weight: 550; line-height: 1.4; text-align: center;
+    padding: 9px 20px; border-radius: 10px; z-index: 40; transition: opacity .3s ease;
+  }
+
+  /* controls */
+  .controls { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+  .controls button.play {
+    font: inherit; font-size: 14px; font-weight: 600; min-width: 104px;
+    border: none; background: #1a1d26; color: #fff; border-radius: 999px; padding: 10px 20px; cursor: pointer;
+  }
+  .controls button.play:hover { background: #30343f; }
+  .time { font-size: 12.5px; font-weight: 600; color: #6b7080; font-variant-numeric: tabular-nums; }
+  .trackwrap { position: relative; flex: 1 1 320px; height: 26px; }
+  input[type=range] {
+    -webkit-appearance: none; appearance: none; width: 100%; height: 26px; background: transparent; cursor: pointer; position: relative; z-index: 2;
+  }
+  input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 999px; background: #e2e4ea; }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: #1a1d26; margin-top: -5px; border: 2.5px solid #fff; box-shadow: 0 1px 4px rgba(20,22,32,.3);
+  }
+  input[type=range]::-moz-range-track { height: 6px; border-radius: 999px; background: #e2e4ea; }
+  input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border-radius: 50%; background: #1a1d26; border: 2.5px solid #fff; box-shadow: 0 1px 4px rgba(20,22,32,.3); }
+  #fill { position: absolute; left: 0; top: 10px; height: 6px; border-radius: 999px; background: #4ea7fc; pointer-events: none; z-index: 1; }
+  .mark { position: absolute; top: 8px; width: 2.5px; height: 10px; border-radius: 2px; background: #9aa0ae; pointer-events: none; z-index: 1; }
+
+  .chapters { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+  .chapters button {
+    font: inherit; font-size: 12px; font-weight: 600; color: #4c5160;
+    border: 1px solid #d7dae2; background: #fff; border-radius: 999px; padding: 6px 14px; cursor: pointer;
+  }
+  .chapters button:hover { border-color: #b3b8c4; }
+  .chapters button.now { background: #1a1d26; color: #fff; border-color: #1a1d26; }
+
+  .note { font-size: 12px; color: #6b7080; margin-top: 14px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toast, .card, .msg, .frow, #cap { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="head">
+    <h1>How a Feature Ships</h1>
+    <div class="links">
+      <a href="feature-release-lifecycle.html">Stage view &#8594;</a>
+      <a href="feature-release-bpmn.html">Process view &#8594;</a>
+    </div>
+  </div>
+  <div class="sub">The feature release lifecycle as a story, using a real upcoming example: the ops workflow revamp Kenny is shaping in Conductor. Watch the ticket board, the feature flag and Slack do their thing. Companion to Proposal v0.4, Sep 2026.</div>
+
+  <div class="scrollwrap">
+  <div class="stage" id="stage">
+
+    <div class="panel" id="board">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="app"><span class="appdot" style="background:#5e6ad2;"></span>Linear &middot; Conductor squad board</span></div>
+      <div class="cols">
+        <div class="colm"><div class="colhead"><span class="cdot" style="background:#8a8f9d;"></span>In Progress</div></div>
+        <div class="colm"><div class="colhead"><span class="cdot" style="background:#4ea7fc;"></span>Ready for QA</div></div>
+        <div class="colm"><div class="colhead"><span class="cdot" style="background:#f2994a;"></span>In QA</div></div>
+        <div class="colm"><div class="colhead"><span class="cdot" style="background:#8b5cf6;"></span>UAT</div></div>
+        <div class="colm"><div class="colhead"><span class="cdot" style="background:#4cb782;"></span>Done</div></div>
+      </div>
+
+      <div class="card epic" id="epic">
+        <div class="cid">CON-XXXX <span class="av" id="epicAv" style="background:#f2994a;">YS</span></div>
+        <div class="ttl">Ops workflow revamp</div>
+        <div class="chips">
+          <span class="chip feature on">feature-release</span>
+          <span class="chip qa" id="chipQa">qa:chathura</span>
+        </div>
+        <div class="checks">
+          <div id="ck1"><span class="bx"></span>UAT signoff (Kallie)</div>
+          <div id="ck2"><span class="bx"></span>Team training</div>
+          <div id="ck3"><span class="bx"></span>Release notes posted</div>
+        </div>
+      </div>
+
+      <div class="card" id="sub1">
+        <div class="cid">CON-XXX1 <span class="av" style="background:#4ea7fc;">KP</span></div>
+        <div class="ttl">Board columns UI</div>
+        <div class="chips"><span class="chip done" id="d1">Done at merge</span></div>
+      </div>
+      <div class="card" id="sub2">
+        <div class="cid">CON-XXX2 <span class="av" style="background:#8b5cf6;">TJ</span></div>
+        <div class="ttl">Task drawer rebuild</div>
+        <div class="chips"><span class="chip done" id="d2">Done at merge</span></div>
+      </div>
+      <div class="card" id="sub3">
+        <div class="cid">CON-XXX3 <span class="av" style="background:#f2994a;">YS</span></div>
+        <div class="ttl">Workflow API filters</div>
+        <div class="chips"><span class="chip done" id="d3">Done at merge</span></div>
+      </div>
+      <div class="card" id="bug">
+        <div class="cid">CON-XXX4 <span class="av" style="background:#8b5cf6;">TJ</span></div>
+        <div class="ttl">Fix: drawer loses filters</div>
+        <div class="chips"><span class="chip sev on">S2</span><span class="chip done" id="d4">Done at merge</span></div>
+      </div>
+
+      <div class="toast" id="t1">PR merged &middot; <b>Board columns UI</b> &middot; ticket closed automatically</div>
+      <div class="toast" id="t2">PR merged &middot; <b>Task drawer rebuild</b> &middot; ticket closed automatically</div>
+      <div class="toast" id="t3">PR merged &middot; <b>Workflow API filters</b> &middot; ticket closed automatically</div>
+      <div class="toast" id="t4">Nightly sweep: all sub-tasks done + flag live &#8594; code-complete?</div>
+      <div class="toast" id="t5">PR merged &middot; <b>Fix: drawer loses filters</b></div>
+      <div class="toast" id="t6">Cleanup ticket filed: remove the flag after soak</div>
+    </div>
+
+    <div class="panel" id="posthog">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="app"><span class="appdot" style="background:#f7a501;"></span>PostHog &middot; Feature flags</span></div>
+      <div class="ph">
+        <div class="flagkey" id="fkey"><span class="sw"></span>release-workflow-ops-revamp</div>
+        <div class="frow" id="fr1"><span class="who">Internal dogfood</span><span style="color:#6b7080;">eng + product team</span><span class="st onl">ON &middot; 100%</span></div>
+        <div class="frow" id="fr2"><span class="who">UAT testers</span><span class="grp"><span class="av" style="background:#8b5cf6;">KL</span><span class="av" style="background:#4cb782;">KD</span></span><span class="st onl">ON &middot; 100%</span></div>
+        <div class="frow" id="rampRow" style="display:block;">
+          <div class="top" style="display:flex;align-items:center;gap:8px;width:100%;"><span class="who">Everyone else</span><span class="st offl" id="rampPct">OFF &middot; 0%</span></div>
+          <div class="rampbar" style="width:100%;"><i id="rampFill"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="slackp">
+      <div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="app"><span class="appdot" style="background:#4a154b;"></span>Slack &middot; #feature-releases</span></div>
+      <div class="msgs">
+        <div class="msg" id="m1"><span class="av" style="background:#1a1d26;">RB</span><div class="body"><span class="nm">Release Bot</span><span class="tm">02:10</span><br>Code-complete candidate: <b>Ops workflow revamp</b> &middot; <code>release-workflow-ops-revamp</code> &middot; all sub-tasks merged. Confirm, <span class="mn">@Yasiru</span>?</div></div>
+        <div class="msg" id="m2"><span class="av" style="background:#1a1d26;">RB</span><div class="body"><span class="nm">Release Bot</span><span class="tm">14:02</span><br>Ready for UAT: <b>Ops workflow revamp</b> &middot; flag is now ON for UAT testers. Over to you, <span class="mn">@Kenny</span> <span class="mn">@Kallie</span></div></div>
+        <div class="msg" id="m3"><span class="av" style="background:#1a1d26;">RB</span><div class="body"><span class="nm">Release Bot</span><span class="tm">09:41</span><br>Shipped: <b>Ops workflow revamp</b> is live for everyone. Release notes posted by <span class="mn">@Kenny</span>.</div></div>
+      </div>
+    </div>
+
+    <div id="cap"></div>
+  </div>
+  </div>
+
+  <div class="controls">
+    <button class="play" id="btnPlay">&#9654;&nbsp; Play</button>
+    <span class="time" id="time">0:00 / 0:00</span>
+    <div class="trackwrap">
+      <div id="fill"></div>
+      <input type="range" id="track" min="0" max="1000" value="0" step="1" aria-label="Timeline">
+    </div>
+  </div>
+  <div class="chapters" id="chaps"></div>
+
+  <div class="note">People in this story: Kalpa, Thiranjaya and Yasiru (Conductor squad), Chathura (QA), Kenny (UAT owner), Kallie (Ops tester). Keyboard: space = play/pause, arrow keys = previous/next chapter.</div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var stage = document.getElementById("stage");
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---- board geometry (fixed stage, deterministic) ----
+  // board panel at left:16 top:16; columns start at y=30(bar)+ colhead ~26 => cards origin
+  var COLW = 166, CARD_X_PAD = 8, TOP = 62, PITCH = 62;
+  function slotPos(col, slot) {
+    return { x: CARD_X_PAD + col * COLW, y: TOP + slot * PITCH };
+  }
+  // columns: 0 In Progress, 1 Ready for QA, 2 In QA, 3 UAT, 4 Done
+
+  // ---- entities ----
+  var cards = {
+    epic: { el: document.getElementById("epic") },
+    sub1: { el: document.getElementById("sub1") },
+    sub2: { el: document.getElementById("sub2") },
+    sub3: { el: document.getElementById("sub3") },
+    bug:  { el: document.getElementById("bug") }
+  };
+
+  // ---- timeline ----
+  // op types: cap, show/hideCard {card,col,slot}, move {card,col,slot,dur}, toast {id,until},
+  // chip {id}, avatar {initials,bg}, msg {id}, frow/fkey {id}, ramp {pct (keyframed)}, tick {id}, checks(on)
+  var OPS = [
+    { t: 0.4, type: "cap", text: "This is how a feature ships. Real example: the ops workflow revamp Kenny is shaping in Conductor." },
+    { t: 1.0, type: "show", card: "epic", col: 0, slot: 0 },
+    { t: 4.0, type: "cap", text: "The squad opens ONE epic for the whole feature, with a feature flag planned from day one." },
+    { t: 4.4, type: "fkey" },
+    { t: 5.0, type: "frow", id: "fr1" },
+    { t: 5.4, type: "frowShow", id: "rampRow" },
+    { t: 7.5, type: "cap", text: "The flag goes live in PostHog immediately, but only for the internal team. Everyone else: nothing." },
+    { t: 10.2, type: "show", card: "sub1", col: 0, slot: 2 },
+    { t: 10.8, type: "show", card: "sub2", col: 0, slot: 3 },
+    { t: 11.4, type: "show", card: "sub3", col: 0, slot: 4 },
+    { t: 11.8, type: "cap", text: "The work splits into sub-tasks: Kalpa, Thiranjaya and Yasiru each take one." },
+
+    // ch2 Build
+    { t: 15.0, type: "cap", text: "They build behind the flag. Every merge reaches production the same day, switched off for everyone." },
+    { t: 16.0, type: "toast", id: "t1", until: 19.0 },
+    { t: 16.4, type: "move", card: "sub1", col: 4, slot: 2, dur: 1.1 },
+    { t: 17.6, type: "chip", id: "d1" },
+    { t: 19.6, type: "toast", id: "t2", until: 22.6 },
+    { t: 20.0, type: "move", card: "sub2", col: 4, slot: 3, dur: 1.1 },
+    { t: 21.2, type: "chip", id: "d2" },
+    { t: 22.8, type: "cap", text: "Merged tickets close by themselves. Velocity counting works exactly as it does today." },
+    { t: 25.4, type: "toast", id: "t3", until: 28.4 },
+    { t: 25.8, type: "move", card: "sub3", col: 4, slot: 4, dur: 1.1 },
+    { t: 27.0, type: "chip", id: "d3" },
+    { t: 28.6, type: "cap", text: "All three are done. The feature is fully built, sitting in production, still invisible." },
+
+    // ch3 Code-complete
+    { t: 33.0, type: "toast", id: "t4", until: 36.6 },
+    { t: 33.6, type: "cap", text: "Overnight, an automated sweep notices: everything merged, flag in place. It asks the eng lead." },
+    { t: 37.0, type: "msg", id: "m1" },
+    { t: 38.6, type: "cap", text: "Yasiru confirms code-complete. The epic, and only the epic, moves forward." },
+    { t: 40.6, type: "move", card: "epic", col: 1, slot: 0, dur: 1.3 },
+    { t: 43.0, type: "cap", text: "Notice the sub-tickets stayed put. From here the epic is the one card that tells the feature's story." },
+
+    // ch4 QA
+    { t: 47.5, type: "chip", id: "chipQa" },
+    { t: 48.2, type: "move", card: "epic", col: 2, slot: 0, dur: 1.3 },
+    { t: 48.6, type: "cap", text: "Chathura, our single QA, tests the whole feature end to end, on the real production app." },
+    { t: 52.6, type: "cap", text: "That works because the flag is on for internal accounts only. Staff see the new workflow; nobody else does." },
+    { t: 56.6, type: "show", card: "bug", col: 0, slot: 2 },
+    { t: 57.0, type: "cap", text: "Anything found becomes a normal bug ticket, fixed and merged the same way as before." },
+    { t: 60.4, type: "toast", id: "t5", until: 63.0 },
+    { t: 60.8, type: "move", card: "bug", col: 4, slot: 5, dur: 1.1 },
+    { t: 62.0, type: "chip", id: "d4" },
+    { t: 63.4, type: "cap", text: "The end-to-end pass is green. Time to hand the feature to the business side." },
+
+    // ch5 UAT
+    { t: 67.5, type: "move", card: "epic", col: 3, slot: 0, dur: 1.3 },
+    { t: 68.2, type: "avatar", initials: "KL", bg: "#8b5cf6" },
+    { t: 68.4, type: "cap", text: "The epic moves to UAT and is reassigned to Kenny, the UAT owner. That is the handoff." },
+    { t: 71.6, type: "msg", id: "m2" },
+    { t: 72.2, type: "frow", id: "fr2" },
+    { t: 72.6, type: "cap", text: "Automatically: a Slack ping, and the flag switches on for the UAT testers group - Kenny and Kallie." },
+    { t: 76.6, type: "cap", text: "Kallie tests real ops scenarios in production. Everyone else still sees nothing." },
+    { t: 79.6, type: "checks" },
+    { t: 80.2, type: "tick", id: "ck1" },
+    { t: 80.4, type: "cap", text: "Signoff, team training, release notes: the changelog agent drafts the notes, Kenny edits and posts." },
+    { t: 81.8, type: "tick", id: "ck2" },
+    { t: 83.4, type: "tick", id: "ck3" },
+    { t: 84.6, type: "cap", text: "UAT signed off. Now, and only now, comes the launch." },
+
+    // ch6 Launch
+    { t: 88.0, type: "ramp", pct: 1 },
+    { t: 88.4, type: "cap", text: "The rollout ramp IS the launch: 1, then 10, then 50, then 100 percent of everyone." },
+    { t: 90.0, type: "ramp", pct: 10 },
+    { t: 92.2, type: "ramp", pct: 50 },
+    { t: 94.4, type: "ramp", pct: 100 },
+    { t: 96.2, type: "move", card: "epic", col: 4, slot: 0, dur: 1.3 },
+    { t: 96.6, type: "cap", text: "At 100 percent the epic closes. That is GA: the feature is live for everyone." },
+    { t: 98.8, type: "toast", id: "t6", until: 101.8 },
+    { t: 99.4, type: "msg", id: "m3" },
+    { t: 101.0, type: "cap", text: "One epic told the whole story: built, tested, signed off, launched. That is the feature release lifecycle." }
+  ];
+  var DURATION = 106;
+
+  var CHAPTERS = [
+    { t: 0,    label: "Kickoff" },
+    { t: 14.5, label: "Build" },
+    { t: 32.5, label: "Code-complete" },
+    { t: 47.0, label: "Feature QA" },
+    { t: 67.0, label: "UAT" },
+    { t: 87.5, label: "Launch" }
+  ];
+
+  // ---- precompute per-card keyframes ----
+  Object.keys(cards).forEach(function (k) { cards[k].keys = []; });
+  OPS.forEach(function (op) {
+    if (op.type === "show" || op.type === "move") {
+      cards[op.card].keys.push({ t: op.t, dur: op.dur || 0, col: op.col, slot: op.slot, show: op.type === "show" });
+    }
+  });
+
+  var ease = function (t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; };
+
+  // ---- pure render of state at time `now` ----
+  var lastCap = null;
+  function seek(now) {
+    // cards
+    Object.keys(cards).forEach(function (k) {
+      var c = cards[k], visible = false, x = 0, y = 0;
+      for (var i = 0; i < c.keys.length; i++) {
+        var kf = c.keys[i];
+        if (now < kf.t) break;
+        visible = true;
+        var p = slotPos(kf.col, kf.slot);
+        if (i > 0 && kf.dur > 0 && now < kf.t + kf.dur && !reduceMotion) {
+          var prev = slotPos(c.keys[i - 1].col, c.keys[i - 1].slot);
+          var f = ease(Math.min(1, (now - kf.t) / kf.dur));
+          x = prev.x + (p.x - prev.x) * f;
+          y = prev.y + (p.y - prev.y) * f;
+        } else { x = p.x; y = p.y; }
+      }
+      c.el.style.opacity = visible ? 1 : 0;
+      c.el.style.transform = "translate(" + x + "px," + y + "px)";
+      c.el.style.zIndex = (k === "epic") ? 20 : 10;
+    });
+
+    // binary + windowed ops
+    var cap = "";
+    OPS.forEach(function (op) {
+      var el;
+      switch (op.type) {
+        case "toast":
+          el = document.getElementById(op.id);
+          el.classList.toggle("on", now >= op.t && now <= op.until);
+          break;
+        case "chip":
+          document.getElementById(op.id).classList.toggle("on", now >= op.t);
+          break;
+        case "msg":
+        case "frow":
+        case "frowShow":
+          document.getElementById(op.id).style.opacity = now >= op.t ? 1 : 0;
+          break;
+        case "fkey":
+          document.getElementById("fkey").style.opacity = now >= op.t ? 1 : 0;
+          break;
+        case "checks":
+          cards.epic.el.classList.toggle("showchecks", now >= op.t);
+          break;
+        case "tick":
+          document.getElementById(op.id).classList.toggle("tick", now >= op.t);
+          break;
+        case "avatar":
+          var av = document.getElementById("epicAv");
+          if (now >= op.t) { av.textContent = op.initials; av.style.background = op.bg; }
+          else { av.textContent = "YS"; av.style.background = "#f2994a"; }
+          break;
+        case "cap":
+          if (now >= op.t) cap = op.text;
+          break;
+      }
+    });
+
+    // ramp (keyframed interpolation)
+    var pct = 0, ramps = OPS.filter(function (o) { return o.type === "ramp"; });
+    for (var r = 0; r < ramps.length; r++) {
+      if (now >= ramps[r].t) {
+        var next = ramps[r + 1];
+        if (next && now < next.t && !reduceMotion) {
+          var f2 = (now - ramps[r].t) / (next.t - ramps[r].t);
+          pct = ramps[r].pct + (next.pct - ramps[r].pct) * f2;
+        } else pct = ramps[r].pct;
+      }
+    }
+    document.getElementById("rampFill").style.width = pct + "%";
+    var pr = document.getElementById("rampPct");
+    pr.textContent = (pct >= 1 ? "ON · " : "OFF · ") + Math.round(pct) + "%";
+    pr.className = "st " + (pct >= 1 ? "onl" : "offl");
+
+    // caption
+    var capEl = document.getElementById("cap");
+    if (cap !== lastCap) { capEl.textContent = cap; lastCap = cap; }
+    capEl.style.opacity = cap ? 1 : 0;
+
+    // controls
+    document.getElementById("track").value = Math.round((now / DURATION) * 1000);
+    document.getElementById("fill").style.width = Math.min(100, (now / DURATION) * 100) + "%";
+    document.getElementById("time").textContent = fmt(now) + " / " + fmt(DURATION);
+    var ci = currentChapter(now);
+    chapBtns.forEach(function (b, i) { b.classList.toggle("now", i === ci); });
+  }
+
+  function fmt(s) { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
+  function currentChapter(now) {
+    var i = 0;
+    CHAPTERS.forEach(function (c, j) { if (now >= c.t) i = j; });
+    return i;
+  }
+
+  // ---- clock (rAF + timer fallback, proven on the BPMN page) ----
+  var playing = false, t = 0, anchorWall = 0, anchorT = 0, gen = 0;
+  function play() {
+    if (t >= DURATION) t = 0;
+    playing = true; anchorWall = performance.now(); anchorT = t; gen++;
+    syncBtn(); pump(gen);
+  }
+  function pause() { playing = false; syncBtn(); }
+  function pump(my) {
+    if (!playing || my !== gen) return;
+    t = anchorT + (performance.now() - anchorWall) / 1000;
+    if (t >= DURATION) { t = DURATION; playing = false; syncBtn(); seek(t); return; }
+    seek(t);
+    var fired = false;
+    var raf = requestAnimationFrame(function () { if (!fired) { fired = true; clearTimeout(fb); pump(my); } });
+    var fb = setTimeout(function () { if (!fired) { fired = true; if (window.cancelAnimationFrame) cancelAnimationFrame(raf); pump(my); } }, 150);
+  }
+  function syncBtn() {
+    document.getElementById("btnPlay").innerHTML = playing ? "&#10074;&#10074;&nbsp; Pause" : (t >= DURATION ? "&#8635;&nbsp; Replay" : "&#9654;&nbsp; Play");
+  }
+  function jumpTo(sec) {
+    t = Math.max(0, Math.min(DURATION, sec));
+    anchorWall = performance.now(); anchorT = t;
+    seek(t); syncBtn();
+  }
+
+  document.getElementById("btnPlay").addEventListener("click", function () { playing ? pause() : play(); });
+  var track = document.getElementById("track");
+  track.addEventListener("input", function () { playing = false; gen++; jumpTo((track.value / 1000) * DURATION); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === " ") { e.preventDefault(); playing ? pause() : play(); }
+    else if (e.key === "ArrowRight") { e.preventDefault(); var c = currentChapter(t) + 1; if (c < CHAPTERS.length) { playing = false; gen++; jumpTo(CHAPTERS[c].t); } }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); var c2 = Math.max(0, currentChapter(t) - (t - CHAPTERS[currentChapter(t)].t < 2 ? 1 : 0)); playing = false; gen++; jumpTo(CHAPTERS[c2].t); }
+  });
+
+  // chapter buttons + track markers
+  var chapBtns = [];
+  var chapsEl = document.getElementById("chaps");
+  var trackwrap = document.querySelector(".trackwrap");
+  CHAPTERS.forEach(function (c, i) {
+    var b = document.createElement("button");
+    b.textContent = (i + 1) + ". " + c.label;
+    b.addEventListener("click", function () { playing = false; gen++; jumpTo(c.t); play(); });
+    chapsEl.appendChild(b); chapBtns.push(b);
+    if (i > 0) {
+      var m = document.createElement("div");
+      m.className = "mark"; m.style.left = (c.t / DURATION * 100) + "%";
+      trackwrap.appendChild(m);
+    }
+  });
+
+  seek(0); syncBtn();
+  setTimeout(play, 700); // autoplay after a short beat, like a video
+})();
+</script>
+</body>
+</html>
